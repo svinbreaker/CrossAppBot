@@ -43,7 +43,6 @@ namespace СrossAppBot
                     {
                         FileStream stream = new FileStream(file, FileMode.Open);
                         attachments.Add(new FileAttachment(stream, file));
-
                     }
 
                     await channel.SendFilesAsync(attachments: attachments, text: text, messageReference: messageReference);
@@ -107,27 +106,12 @@ namespace СrossAppBot
             OnDiscordDisconnected(null);
         }
 
-
-        private async Task MessageReceivedAsync(SocketMessage discordMessage)
+        private async Task MessageReceivedAsync(SocketMessage originalMessage)
         {
-            SocketGuild discordGuild = (discordMessage.Channel as SocketGuildChannel).Guild;
+            SocketGuild discordGuild = (originalMessage.Channel as SocketGuildChannel).Guild;
+
             ChatGuild chatGuild = ConvertDiscordGuildToChatGuild(discordGuild);
-
-
-
-            /* List<AppPicture> pictures = new List<AppPicture>();
-
-             foreach (Attachment attachment in discordMessage.Attachments)    
-            {
-
-                 if (attachment.Width.HasValue && attachment.Height.HasValue)
-                 {
-                     pictures.Add(new AppPicture(attachment.Url, attachment.Width.Value, attachment.Height.Value));
-                 }
-             }*/
-
-
-            ChatMessage message = ConvertDiscordMessageToChatMessage(discordMessage);
+            ChatMessage message = ConvertDiscordMessageToChatMessage(originalMessage);
             await EventManager.CallEvent(new MessageReceivedEvent(message));
         }
 
@@ -176,6 +160,15 @@ namespace СrossAppBot
             {
                 string id = mention.Replace("<@", "");
                 id = id.Replace(">", "");
+<<<<<<< HEAD
+=======
+
+<<<<<<< HEAD
+                //SocketGuildUser discordUser = _client.GetGuild(ulong.Parse(discordMessage.Guild.LocalId)).GetUserAsync(ulong.Parse(id));
+=======
+                //SocketGuildUser discordUser = _client.GetGuild(ulong.Parse(message.Guild.LocalId)).GetUserAsync(ulong.Parse(id));
+>>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
+>>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
                 SocketGuildUser discordUser = GetDiscordGuild(message.Guild).GetUser(ulong.Parse(id));
                 if (discordUser != null)
                 {
@@ -310,7 +303,6 @@ namespace СrossAppBot
         {
             return GetDiscordGuild(guild).GetUser(ulong.Parse(user.Id));
         }
-
         public bool IsEmoji(string content)
         {
             Emoji.TryParse(content, out Emoji emoji);

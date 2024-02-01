@@ -20,6 +20,7 @@ using VkNet.Abstractions;
 using СrossAppBot.Entities;
 using СrossAppBot.Events;
 
+
 namespace СrossAppBot
 {
     public class VkBotClient : AbstractBotClient
@@ -67,7 +68,7 @@ namespace СrossAppBot
                 {
                     RandomId = new Random().Next(), // Generate a random ID for the vkMessage
                     PeerId = peerId, // Specify the recipient's ID
-                    Message = text, // Set the vkMessage content
+                    Message = text, // Set the vkMessage content      
                     Attachments = attachments.SelectMany(attachments => attachments),
                     Forward = messageForward
                 };
@@ -127,7 +128,6 @@ namespace СrossAppBot
 
 
                 List<GroupUpdate> updates = poll.Updates;
-                //Console.WriteLine(updates.Count);
 
                 List<Message> messages = updates
                      .Where(u => u.Instance is MessageNew)
@@ -140,10 +140,13 @@ namespace СrossAppBot
                     {
                         ChatMessage message = ConvertVkMessageToChatMessage(vkMessage);
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
+
                     }
                 }
             }
         }
+
+
 
         public override string Mention(ChatUser user)
         {
