@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace СrossAppBot.Events
+namespace СrossAppBot
 {
-    public class EventLogger
+    internal class test
     {
-
     }
 }

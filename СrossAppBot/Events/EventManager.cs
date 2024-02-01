@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using СrossAppBot.Entities;
+using СrossAppBot.Events.Logging;
 
 namespace СrossAppBot.Events
 {
@@ -13,6 +16,8 @@ namespace СrossAppBot.Events
 
         // Use a dictionary to map event types to lists of event handlers
         private Dictionary<Type, List<Delegate>> eventHandlers = new Dictionary<Type, List<Delegate>>();
+
+        EventLogger logger = new EventLogger(LogSettings.Auto);
 
         // Subscribe to an events
         public void Subscribe<T>(params EventHandler<T>[] handlers) where T : AbstractClientEvent
@@ -26,6 +31,7 @@ namespace СrossAppBot.Events
             {
                 eventHandlers[typeof(T)].Add(handler);
             }
+
         }
 
         // Unsubscribe from an events
@@ -48,10 +54,15 @@ namespace СrossAppBot.Events
                 foreach (var handler in eventHandlers[typeof(T)])
                 {
                     await ((EventHandler<T>)handler)(clientEvent);
+
+                    //temp logging solution
+                    if (logger.Settings == LogSettings.Auto)
+                    {
+                        await logger.LogEventAsync(clientEvent);
+                    }
                 }
             }
         }
-
 
         /*// Trigger events
         public async Task CallEvent(params AbstractClientEvent[] clientEvents)

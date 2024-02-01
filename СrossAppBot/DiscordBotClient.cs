@@ -73,10 +73,10 @@ namespace СrossAppBot
 
             _config = new DiscordSocketConfig { GatewayIntents = GatewayIntents.MessageContent | GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.All };
             _client = new DiscordSocketClient(_config);
-            _client.Log += LogAsync;
+            //_client.Log += LogAsync;
             _client.MessageReceived += MessageReceivedAsync;
             _client.Connected += OnBotConnected;
-            _client.Disconnected += OnDiscordDisconnected;
+            _client.Disconnected += OnBotDisconnected;
 
             //base.Id = _client.CurrentUser.Id.ToString();
 
@@ -93,18 +93,15 @@ namespace СrossAppBot
 
         private async Task OnBotConnected()
         {
-            Console.WriteLine("Discord запустился...");
+            await EventManager.CallEvent(new BotConnectedEvent(this));
         }
 
-        public async Task OnDiscordDisconnected(Exception exception)
+        public async Task OnBotDisconnected(Exception exception)
         {
-            Console.WriteLine("Discord отключился...");
+            await EventManager.CallEvent(new BotConnectedEvent(this));
         }
 
-        public async Task OnBotDisconnected()
-        {
-            OnDiscordDisconnected(null);
-        }
+
 
         private async Task MessageReceivedAsync(SocketMessage originalMessage)
         {

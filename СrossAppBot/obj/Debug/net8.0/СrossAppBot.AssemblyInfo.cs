@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("СrossAppBot")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8cf7ccd6504e183e38d4908155f0e9b7d4eb084e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e8a84991bc5d06869bb2530965b72cafaabd030d")]
 [assembly: System.Reflection.AssemblyProductAttribute("СrossAppBot")]
 [assembly: System.Reflection.AssemblyTitleAttribute("СrossAppBot")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

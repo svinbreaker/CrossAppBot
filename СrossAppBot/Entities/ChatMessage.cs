@@ -42,5 +42,10 @@ namespace СrossAppBot.Entities
         {
             return new CommandContext() { Channel = this.Channel, Client = Client, Guild = this.Guild, Message = this, Sender = Author };
         }
+
+        public override string ToString()
+        {
+            return $"Client: {Client.Name}, Id: {Id}, Text: {Text}, AuthorId: {Author.Id}, AuthorName: {Author.Name}, GuildId: {Guild.Id}, ChannelId: {Channel.Id}, MessageReferanceId: {MessageReference}, Files: {Files.Count}";
+        }
     }
 }

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace СrossAppBot
+namespace СrossAppBot.Events.Logging
 {
-    internal class Test
+    public enum LogSettings
     {
+        Auto, Manual
     }
 }

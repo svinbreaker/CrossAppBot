@@ -56,6 +56,8 @@ namespace СrossAppBot
             );
             });
 
+            await EventManager.CallEvent(new BotConnectedEvent(this));
+
             await Task.Delay(-1);
         }
 

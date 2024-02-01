@@ -83,7 +83,6 @@ namespace СrossAppBot
 
         public override async Task StartAsync()
         {
-            Console.WriteLine("T");
             _api.Authorize(new ApiAuthParams
             {
                 AccessToken = Token,
@@ -103,6 +102,7 @@ namespace СrossAppBot
             }
             var ts = longPollServer.Ts;
 
+            await EventManager.CallEvent(new BotConnectedEvent(this));
 
             while (true)
             {
@@ -141,7 +141,6 @@ namespace СrossAppBot
                     {
                         ChatMessage message = ConvertVkMessageToChatMessage(vkMessage);
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
-
                     }
                 }
             }

@@ -25,9 +25,7 @@ namespace СrossAppBot
             }
         }
 
-      
-        
-        public AbstractBotClient(string name, string token) 
+        public AbstractBotClient(string name, string token)
         {
             Name = name;
             Token = token;
@@ -46,5 +44,9 @@ namespace СrossAppBot
         public abstract Task<ChatChannel> GetChannelAsync(string channeId);
         public abstract Task<ChatGuild> GetGuildAsync(string guildId);
 
+        public override string ToString()
+        {
+            return $"Name: {Name}, Token: {Token}, Id: {Id}";
+        }
     }
 }

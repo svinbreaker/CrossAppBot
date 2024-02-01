@@ -9,7 +9,7 @@ namespace СrossAppBot.Events
 {
     public class MessageEditedEvent : AbstractClientEvent
     {
-        public ChatMessage Message { get; set; }
+        public ChatMessage Message { get; }
 
         public MessageEditedEvent(ChatMessage message)
         {
