@@ -4,14 +4,7 @@ using System.Threading.Tasks;
 using СrossAppBot.Commands;
 using СrossAppBot.Entities;
 using СrossAppBot.Entities.Files;
-<<<<<<< HEAD
 using СrossAppBot.Events;
-=======
-<<<<<<< HEAD
-using СrossAppBot.Events;
-=======
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
->>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
 
 namespace СrossAppBot
 {
@@ -21,10 +14,6 @@ namespace СrossAppBot
 
         public string Token { get; set; }
         public string Id { get; set; }
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
 
         private EventManager eventManager = new EventManager();
 
@@ -36,16 +25,9 @@ namespace СrossAppBot
             }
         }
 
-<<<<<<< HEAD
+      
         
         public AbstractBotClient(string name, string token) 
-=======
-        public AbstractBotClient(string name, string token)
-=======
-        
-        public AbstractBotClient(string name, string token) 
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
->>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
         {
             Name = name;
             Token = token;
@@ -55,27 +37,6 @@ namespace СrossAppBot
         public abstract Task StartAsync();
         public abstract Task SendMessageAsync(string channelId, string text = null, string messageReferenceId = null, List<string> files = null);
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-        public delegate Task MessageReceivedHandler(ChatMessage message);
-        public event MessageReceivedHandler OnMessageReceived;
-        public void CallOnMessageReceived(ChatMessage message) 
-        {
-            OnMessageReceived?.Invoke(message);
-        }
-
-        public delegate Task MessageEditedHandler(ChatMessage message);
-        public event MessageEditedHandler OnMessageEdit;
-        public void CallOnMessageEdited(ChatMessage message)
-        {
-            OnMessageReceived?.Invoke(message);
-        }
-
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
-
->>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
         public abstract string Mention(ChatUser user);
         public abstract string Mention(string userId);
         public abstract bool TextIsMention(ChatMessage message, string mention);

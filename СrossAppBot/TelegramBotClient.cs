@@ -14,15 +14,8 @@ using Newtonsoft.Json;
 using Discord.WebSocket;
 using СrossAppBot.Entities.Files;
 using СrossAppBot.Entities;
-<<<<<<< HEAD
 using СrossAppBot.Events;
 
-=======
-<<<<<<< HEAD
-using СrossAppBot.Events;
-=======
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
->>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
 
 namespace СrossAppBot
 {
@@ -78,30 +71,14 @@ namespace СrossAppBot
 
         private async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-<<<<<<< HEAD
             await Task.Run(async () =>
-=======
-<<<<<<< HEAD
-            await Task.Run(async () =>
-=======
-            await Task.Run(() =>
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
->>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
             {
                 switch (update.Type)
                 {
                     case UpdateType.Message:
                         Message originalMessage = update.Message;
                         ChatMessage message = ConvertTelegramMessageToChatMessage(originalMessage);
-<<<<<<< HEAD
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
-=======
-<<<<<<< HEAD
-                        await EventManager.CallEvent(new MessageReceivedEvent(message));
-=======
-                        CallOnMessageReceived(message);
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
->>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
                         break;
                 }
             }

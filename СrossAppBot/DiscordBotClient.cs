@@ -160,15 +160,7 @@ namespace СrossAppBot
             {
                 string id = mention.Replace("<@", "");
                 id = id.Replace(">", "");
-<<<<<<< HEAD
-=======
 
-<<<<<<< HEAD
-                //SocketGuildUser discordUser = _client.GetGuild(ulong.Parse(discordMessage.Guild.LocalId)).GetUserAsync(ulong.Parse(id));
-=======
-                //SocketGuildUser discordUser = _client.GetGuild(ulong.Parse(message.Guild.LocalId)).GetUserAsync(ulong.Parse(id));
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
->>>>>>> 2b83a5c08baa27014ea0a3aa7ffe1eb90eb254a1
                 SocketGuildUser discordUser = GetDiscordGuild(message.Guild).GetUser(ulong.Parse(id));
                 if (discordUser != null)
                 {

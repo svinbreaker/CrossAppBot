@@ -83,6 +83,7 @@ namespace СrossAppBot
 
         public override async Task StartAsync()
         {
+            Console.WriteLine("T");
             _api.Authorize(new ApiAuthParams
             {
                 AccessToken = Token,
