@@ -18,10 +18,8 @@ using System.Net.Http;
 using System.IO;
 using VkNet.Abstractions;
 using СrossAppBot.Entities;
-<<<<<<< HEAD
 using СrossAppBot.Events;
-=======
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
+
 
 namespace СrossAppBot
 {
@@ -68,15 +66,9 @@ namespace СrossAppBot
 
                 MessagesSendParams sendMessageParams = new MessagesSendParams
                 {
-<<<<<<< HEAD
                     RandomId = new Random().Next(), // Generate a random ID for the vkMessage
                     PeerId = peerId, // Specify the recipient's ID
-                    Message = text, // Set the vkMessage content
-=======
-                    RandomId = new Random().Next(), // Generate a random ID for the message
-                    PeerId = peerId, // Specify the recipient's ID
-                    Message = text, // Set the message content
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
+                    Message = text, // Set the vkMessage content      
                     Attachments = attachments.SelectMany(attachments => attachments),
                     Forward = messageForward
                 };
@@ -91,6 +83,7 @@ namespace СrossAppBot
 
         public override async Task StartAsync()
         {
+            Console.WriteLine("T");
             _api.Authorize(new ApiAuthParams
             {
                 AccessToken = Token,
@@ -98,8 +91,6 @@ namespace СrossAppBot
             });
 
             var botUser = await _api.Users.GetAsync(new long[] { (long)GroupId });
-
-            //base.Id = botUser[0].Id.ToString();
 
             LongPollServerResponse longPollServer = null;
             try
@@ -138,7 +129,6 @@ namespace СrossAppBot
 
 
                 List<GroupUpdate> updates = poll.Updates;
-                //Console.WriteLine(updates.Count);
 
                 List<Message> messages = updates
                      .Where(u => u.Instance is MessageNew)
@@ -147,20 +137,17 @@ namespace СrossAppBot
 
                 if (messages.Count > 0)
                 {
-<<<<<<< HEAD
                     foreach (Message vkMessage in messages)
                     {
                         ChatMessage message = ConvertVkMessageToChatMessage(vkMessage);
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
-=======
-                    foreach (Message message in messages)
-                    {
-                        CallOnMessageReceived(ConvertVkMessageToChatMessage(message));
->>>>>>> 0b4914b28d0eab8a003fd1a5178091bce1317389
+
                     }
                 }
             }
         }
+
+
 
         public override string Mention(ChatUser user)
         {

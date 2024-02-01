@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "dgSpecHash": "9p7NqfuutAF5KlbxUkYEHi44MojOTh6JdRMGWgej42KQ5u4UMclzDH1SW5eCuGjKowM4KqfraNDUSYJzWwfEgg==",
+  "success": true,
+  "projectFilePath": "D:\\Docs\\VisualStudioProjects\\СrossAppBot\\СrossAppBot\\СrossAppBot.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Cracker\\.nuget\\packages\\discord.net\\3.12.0\\discord.net.3.12.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\discord.net.commands\\3.12.0\\discord.net.commands.3.12.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\discord.net.core\\3.12.0\\discord.net.core.3.12.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\discord.net.interactions\\3.12.0\\discord.net.interactions.3.12.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\discord.net.rest\\3.12.0\\discord.net.rest.3.12.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\discord.net.webhook\\3.12.0\\discord.net.webhook.3.12.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\discord.net.websocket\\3.12.0\\discord.net.websocket.3.12.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\htmlagilitypack\\1.11.53\\htmlagilitypack.1.11.53.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\7.0.0\\microsoft.extensions.dependencyinjection.7.0.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\7.0.0\\microsoft.extensions.dependencyinjection.abstractions.7.0.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\7.0.1\\microsoft.extensions.logging.abstractions.7.0.1.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\system.collections.immutable\\5.0.0\\system.collections.immutable.5.0.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\system.interactive.async\\5.0.0\\system.interactive.async.5.0.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\system.linq.async\\5.0.0\\system.linq.async.5.0.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\system.reactive\\5.0.0\\system.reactive.5.0.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\system.text.encoding.codepages\\7.0.0\\system.text.encoding.codepages.7.0.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\system.valuetuple\\4.5.0\\system.valuetuple.4.5.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\telegram.bot\\19.0.0\\telegram.bot.19.0.0.nupkg.sha512",
+    "C:\\Users\\Cracker\\.nuget\\packages\\vknet\\1.76.0\\vknet.1.76.0.nupkg.sha512"
+  ],
+  "logs": []
+}
