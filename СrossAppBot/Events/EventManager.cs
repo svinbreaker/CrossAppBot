@@ -40,6 +40,19 @@ namespace СrossAppBot.Events
             }
         }
 
+        // Trigger an event
+        public async Task CallEvent<T>(T clientEvent) where T : AbstractClientEvent
+        {
+            if (eventHandlers.ContainsKey(typeof(T)))
+            {
+                foreach (var handler in eventHandlers[typeof(T)])
+                {
+                    await ((EventHandler<T>)handler)(clientEvent);
+                }
+            }
+        }
+
+
         /*// Trigger events
         public async Task CallEvent(params AbstractClientEvent[] clientEvents)
         {
@@ -57,40 +70,5 @@ namespace СrossAppBot.Events
                 }
             }
         }*/
-
-
-        // Trigger an event
-        public async Task CallEvent<T>(T clientEvent) where T : AbstractClientEvent
-        {
-            if (eventHandlers.ContainsKey(typeof(T)))
-            {
-                foreach (var handler in eventHandlers[typeof(T)])
-                {
-                    await ((EventHandler<T>)handler)(clientEvent);
-                }
-            }
-        }
     }
-
-    /*public class EventManager
-    {
-        public delegate Task MessageReceivedHandler(MessageReceivedEvent clientEvent);
-        public event MessageReceivedHandler OnMessageReceived;
-        
-        public delegate Task MessageEditedHandler(MessageEditedEvent clientEvent);
-        public event MessageEditedHandler OnMessageEdit;
-      
-        public void CallEvent(AbstractClientEvent clientEvent)
-        {
-            if (clientEvent is MessageReceivedEvent)
-            {
-                OnMessageReceived?.Invoke((MessageReceivedEvent)clientEvent);
-            }
-            else if (clientEvent is MessageEditedEvent) 
-            {
-                OnMessageEdit?.Invoke((MessageEditedEvent)clientEvent);
-            }
-        }
-    }*/
-
 }

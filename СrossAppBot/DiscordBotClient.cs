@@ -41,7 +41,6 @@ namespace СrossAppBot
                     List<FileStream> streams = new List<FileStream>();
                     foreach (string file in files)
                     {
-
                         FileStream stream = new FileStream(file, FileMode.Open);
                         attachments.Add(new FileAttachment(stream, file));
 
@@ -118,8 +117,8 @@ namespace СrossAppBot
 
             /* List<AppPicture> pictures = new List<AppPicture>();
 
-             foreach (Attachment attachment in discordMessage.Attachments)
-             {
+             foreach (Attachment attachment in discordMessage.Attachments)    
+            {
 
                  if (attachment.Width.HasValue && attachment.Height.HasValue)
                  {
@@ -130,7 +129,6 @@ namespace СrossAppBot
 
             ChatMessage message = ConvertDiscordMessageToChatMessage(discordMessage);
             await EventManager.CallEvent(new MessageReceivedEvent(message));
-
         }
 
         public override string Mention(ChatUser user)
@@ -178,8 +176,6 @@ namespace СrossAppBot
             {
                 string id = mention.Replace("<@", "");
                 id = id.Replace(">", "");
-
-                //SocketGuildUser discordUser = _client.GetGuild(ulong.Parse(discordMessage.Guild.LocalId)).GetUserAsync(ulong.Parse(id));
                 SocketGuildUser discordUser = GetDiscordGuild(message.Guild).GetUser(ulong.Parse(id));
                 if (discordUser != null)
                 {
@@ -329,7 +325,6 @@ namespace СrossAppBot
             }
             return false;
         }
-
         private SocketGuild GetDiscordGuild(ChatGuild guild)
         {
             return _client.GetGuild(ulong.Parse(guild.Id));
@@ -341,6 +336,5 @@ namespace СrossAppBot
             url = url.Split('/').Last();
             return url.Contains('.') ? url.Substring(url.LastIndexOf('.')) : "";
         }
-
     }
 }

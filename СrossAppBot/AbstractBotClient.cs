@@ -25,7 +25,8 @@ namespace СrossAppBot
             }
         }
 
-        public AbstractBotClient(string name, string token)
+        
+        public AbstractBotClient(string name, string token) 
         {
             Name = name;
             Token = token;
@@ -34,7 +35,6 @@ namespace СrossAppBot
         public TextCommandProcessor TextCommandProcessor { get; set; }
         public abstract Task StartAsync();
         public abstract Task SendMessageAsync(string channelId, string text = null, string messageReferenceId = null, List<string> files = null);
-
 
         public abstract string Mention(ChatUser user);
         public abstract string Mention(string userId);

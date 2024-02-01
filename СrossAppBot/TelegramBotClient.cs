@@ -16,6 +16,7 @@ using СrossAppBot.Entities.Files;
 using СrossAppBot.Entities;
 using СrossAppBot.Events;
 
+
 namespace СrossAppBot
 {
     public class TelegramBotClient : AbstractBotClient
@@ -41,7 +42,7 @@ namespace СrossAppBot
 
             var receiverOptions = new ReceiverOptions
             {
-                AllowedUpdates = { } // разрешено получать все виды апдейтов
+                AllowedUpdates = { } 
             };
 
 
@@ -65,7 +66,6 @@ namespace СrossAppBot
 
         public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
-            // Данный Хендлер получает ошибки и выводит их в консоль в виде JSON
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(exception));
         }
 
