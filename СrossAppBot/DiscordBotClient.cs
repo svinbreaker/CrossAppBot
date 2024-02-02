@@ -73,10 +73,11 @@ namespace СrossAppBot
 
             _config = new DiscordSocketConfig { GatewayIntents = GatewayIntents.MessageContent | GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.All };
             _client = new DiscordSocketClient(_config);
-            //_client.Log += LogAsync;
-            _client.MessageReceived += MessageReceivedAsync;
+            //_client.Log += LogAsync;           
             _client.Connected += OnBotConnected;
             _client.Disconnected += OnBotDisconnected;
+            _client.MessageReceived += MessageReceivedAsync;
+            _client.MessageUpdated += MessageUpdatedAsync;
 
             //base.Id = _client.CurrentUser.Id.ToString();
 
@@ -110,6 +111,17 @@ namespace СrossAppBot
             ChatGuild chatGuild = ConvertDiscordGuildToChatGuild(discordGuild);
             ChatMessage message = ConvertDiscordMessageToChatMessage(originalMessage);
             await EventManager.CallEvent(new MessageReceivedEvent(message));
+        }
+        private async Task MessageUpdatedAsync(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
+        {
+            SocketGuild discordGuild = (after.Channel as SocketGuildChannel).Guild;
+            var beforeMessage = before.HasValue ? before.Value as SocketUserMessage : null;
+
+            ChatMessage message = ConvertDiscordMessageToChatMessage(after);
+            if (beforeMessage.Content != after.Content)
+            {
+                await EventManager.CallEvent(new MessageEditedEvent(message, beforeMessage.Content));
+            }
         }
 
         public override string Mention(ChatUser user)
@@ -295,12 +307,12 @@ namespace СrossAppBot
         public bool IsEmoji(string content)
         {
             Emoji.TryParse(content, out Emoji emoji);
-            if (emoji != null) 
+            if (emoji != null)
             {
                 return true;
-            }           
+            }
             Emote.TryParse(content, out Emote emote);
-            if (emote != null) 
+            if (emote != null)
             {
                 return true;
             }
