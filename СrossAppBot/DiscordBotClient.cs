@@ -120,7 +120,7 @@ namespace СrossAppBot
             ChatMessage message = ConvertDiscordMessageToChatMessage(after);
             if (beforeMessage.Content != after.Content)
             {
-                await EventManager.CallEvent(new MessageEditedEvent(message, beforeMessage.Content));
+                await EventManager.CallEvent(new MessageEditedEvent(message, null));
             }
         }
 

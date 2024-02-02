@@ -83,6 +83,14 @@ namespace СrossAppBot
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
                         break;
                 }
+
+                if (update.EditedMessage != null) 
+                {
+                    Message originalMessage = update.EditedMessage;
+                    ChatMessage message = ConvertTelegramMessageToChatMessage(originalMessage);
+
+                    await EventManager.CallEvent(new MessageEditedEvent(message, null));
+                }
             }
             );
         }
