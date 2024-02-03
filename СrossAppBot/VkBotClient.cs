@@ -23,10 +23,12 @@ using СrossAppBot.Events;
 
 namespace СrossAppBot
 {
-    public class VkBotClient : AbstractBotClient
+    public class VkBotClient : AbstractBotClient, IEmojiable, IAddReaction
     {
         private VkApi _api = new VkApi();
         private ulong GroupId;
+
+        private static List<string> _emojis = new List<string> { "❤️", "🔥", "😂", "👍", "💩", "❓", "😭", "👎", "👌", "😡", "😃", "🤔", "🙏", "😘", "😍", "🎉" };
 
         public VkBotClient(string Token, ulong GroupId) : base("Vk", Token)
         {
@@ -129,6 +131,7 @@ namespace СrossAppBot
 
 
                 List<GroupUpdate> updates = poll.Updates;
+                //Console.WriteLine(updates.Count);
 
                 List<Message> messages = updates
                      .Where(u => u.Instance is MessageNew)
@@ -137,15 +140,14 @@ namespace СrossAppBot
 
                 if (messages.Count > 0)
                 {
-                    foreach (Message vkMessage in messages)
+                    foreach (Message originalMessage in messages)
                     {
-                        ChatMessage message = ConvertVkMessageToChatMessage(vkMessage);
+                        ChatMessage message = ConvertVkMessageToChatMessage(originalMessage);                    
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
                     }
                 }
             }
         }
-
 
 
         public override string Mention(ChatUser user)
@@ -299,6 +301,16 @@ namespace СrossAppBot
                 var response = client.PostAsync(serverUrl, requestContent).Result;
                 return Encoding.Default.GetString(await response.Content.ReadAsByteArrayAsync());
             }
+        }
+
+        public bool IsReactableEmoji(string content)
+        {
+            return _emojis.Contains(content);
+        }
+
+        public Task AddReaction(ChatMessage message, string reaction)
+        {
+            throw new NotImplementedException();
         }
     }
 }

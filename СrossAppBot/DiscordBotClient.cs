@@ -304,7 +304,7 @@ namespace СrossAppBot
         {
             return GetDiscordGuild(guild).GetUser(ulong.Parse(user.Id));
         }
-        public bool IsEmoji(string content)
+        public bool IsReactableEmoji(string content)
         {
             Emoji.TryParse(content, out Emoji emoji);
             if (emoji != null)

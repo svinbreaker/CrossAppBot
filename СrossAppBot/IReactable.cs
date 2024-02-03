@@ -8,6 +8,6 @@ namespace СrossAppBot
 {
     public interface IEmojiable
     {
-        public bool IsEmoji(string content);
+        public bool IsReactableEmoji(string content);
     }
 }
