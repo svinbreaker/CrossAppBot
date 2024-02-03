@@ -41,7 +41,7 @@ namespace СrossAppBot
                     List<FileStream> streams = new List<FileStream>();
                     foreach (string file in files)
                     {
-                        FileStream stream = new FileStream(file, FileMode.Open);
+                        FileStream stream = new FileStream(file, FileMode.Open, FileAccess.Read);
                         attachments.Add(new FileAttachment(stream, file));
                     }
 
