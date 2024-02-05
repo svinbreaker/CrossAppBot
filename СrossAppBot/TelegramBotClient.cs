@@ -15,7 +15,7 @@ using Discord.WebSocket;
 using СrossAppBot.Entities.Files;
 using СrossAppBot.Entities;
 using СrossAppBot.Events;
-using static System.Net.WebRequestMethods;
+using System.Net.NetworkInformation;
 
 
 namespace СrossAppBot
@@ -26,7 +26,31 @@ namespace СrossAppBot
         private TelegramUsers telegramUsers;
 
 
-        public TelegramBotClient(string Token, string dataFilePath = null) : base("Telegram", Token)
+        List<string> imageFormats = new List<string>
+        {
+            ".jpg", ".jpeg", ".png", ".tiff", ".bmp", ".webp"
+        };
+
+        List<string> videoFormats = new List<string>
+        {
+            ".mp4", ".mov"
+        };
+
+        List<string> audioFormats = new List<string>
+        {
+            ".mp3", ".m4a", ".ogg", ".flac", ".wav"
+        };
+        List<string> animationFormats = new List<string>
+        {
+            ".gif"
+        };
+
+        List<string> documentFormats = new List<string>
+        {
+            ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".txt", ".rtf", ".zip"
+        };
+
+        public TelegramBotClient(string Token, string dataFilePath) : base("Telegram", Token)
         {
             if (dataFilePath != null)
             {
@@ -46,7 +70,6 @@ namespace СrossAppBot
                 AllowedUpdates = { }
             };
 
-
             await Task.Run(() =>
             {
                 bot.StartReceiving(
@@ -64,8 +87,129 @@ namespace СrossAppBot
 
         public override async Task SendMessageAsync(string channelId, string text = null, string messageReferenceId = null, List<string> files = null)
         {
-            await bot.SendTextMessageAsync(chatId: long.Parse(channelId), text: text);
+            long chatId = long.Parse(channelId);
+            int? messageReference = null;
+            if (messageReferenceId != null)
+            {
+                messageReference = int.Parse(messageReferenceId);
+            }
+
+            if (files == null)
+            {
+                await bot.SendTextMessageAsync(chatId: chatId, text: text, replyToMessageId: messageReference);
+            }
+            else
+            {
+                for (int i = 0; i < files.Count; i++)
+                {
+                    var filePath = files[i];
+                    string extension = Path.GetExtension(filePath);
+                    using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        byte[] fileBytes = new byte[fileStream.Length];
+                        await fileStream.ReadAsync(fileBytes, 0, (int)fileStream.Length);
+
+                        using (var memoryStream = new MemoryStream(fileBytes))
+                        {
+                            InputFile inputFile = InputFile.FromStream(memoryStream, filePath);
+                            if (imageFormats.Contains(extension))
+                            {
+                                await bot.SendPhotoAsync(chatId: chatId, caption: text, photo: inputFile, replyToMessageId: messageReference);
+                            }
+                            else if (videoFormats.Contains(extension))
+                            {
+                                await bot.SendVideoAsync(chatId: chatId, caption: text, video: inputFile, replyToMessageId: messageReference);
+                            }
+                            else if (audioFormats.Contains(extension))
+                            {
+                                await bot.SendAudioAsync(chatId: chatId, caption: text, audio: inputFile, replyToMessageId: messageReference);
+                            }
+                            else if (animationFormats.Contains(extension))
+                            {
+                                await bot.SendAnimationAsync(chatId: chatId, caption: text, animation: inputFile, replyToMessageId: messageReference);
+                            }
+                            else
+                            {
+                                await bot.SendDocumentAsync(chatId: chatId, caption: text, document: inputFile, replyToMessageId: messageReference);
+                            }
+                            if (i > 0) text = null;
+                        }
+                    }
+                }
+            }
+            /*else if (files.Count == 1)
+            {
+                var filePath = files[0];
+                string extension = Path.GetExtension(filePath);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    InputFile inputFile = InputFile.FromStream(fileStream, filePath);
+                    if (imageFormats.Contains(extension))
+                    {
+                        await bot.SendPhotoAsync(chatId: chatId, caption: text, photo: inputFile, replyToMessageId: messageReference);
+                    }
+                    else if (videoFormats.Contains(extension))
+                    {
+                        await bot.SendVideoAsync(chatId: chatId, caption: text, video: inputFile, replyToMessageId: messageReference);
+                    }
+                    else if (audioFormats.Contains(extension))
+                    {
+                        await bot.SendAudioAsync(chatId: chatId, caption: text, audio: inputFile, replyToMessageId: messageReference);
+                    }
+                    else if (animationFormats.Contains(extension))
+                    {
+                        await bot.SendAnimationAsync(chatId: chatId, caption: text, animation: inputFile, replyToMessageId: messageReference);
+                    }
+                    else
+                    {
+                        await bot.SendDocumentAsync(chatId: chatId, caption: text, document: inputFile, replyToMessageId: messageReference);
+                    }
+                }
+            }
+            else
+            {
+                IAlbumInputMedia[] album = new IAlbumInputMedia[files.Count];
+                List<FileStream> streams = new List<FileStream>();
+                for (int i = 0; i < album.Length; i++)
+                {
+                    string filePath = files[i];
+                    string extension = Path.GetExtension(filePath);
+                    IAlbumInputMedia inputMedia;
+
+                    streams.Add(new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read));
+                    FileStream fileStream = streams[i];
+
+                    if (imageFormats.Contains(extension))
+                    {
+                        inputMedia = new InputMediaPhoto(InputFile.FromStream(fileStream, filePath));
+                    }
+                    else if (audioFormats.Contains(extension))
+                    {
+                        inputMedia = new InputMediaAudio(InputFile.FromStream(fileStream, filePath));
+                    }
+                    else if (videoFormats.Contains(extension))
+                    {
+                        inputMedia = new InputMediaVideo(InputFile.FromStream(fileStream, filePath));
+                    }
+                    else
+                    {
+                        inputMedia = new InputMediaDocument(InputFile.FromStream(fileStream, filePath));
+                    }
+                    album[i] = inputMedia;
+                }
+                try
+                {
+                    await bot.SendMediaGroupAsync(chatId: chatId, media: album, replyToMessageId: messageReference);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
+                streams.ForEach(s => s.Close());
+            }*/
         }
+
 
         public async Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
@@ -148,7 +292,15 @@ namespace СrossAppBot
                 string username = mention.Substring(1);
                 Chat chat = await bot.GetChatAsync(message.Channel.Id);
                 long userId = telegramUsers.GetId(username);
-                ChatMember telegramUser = await bot.GetChatMemberAsync(message.Channel.Id, userId); //GetChatMemberAsync
+                ChatMember telegramUser;
+                try
+                {
+                    telegramUser = await bot.GetChatMemberAsync(message.Channel.Id, userId); //GetChatMemberAsync throws an exception when user not found instead of returning null
+                }
+                catch
+                {
+                    telegramUser = null;
+                }
 
                 if (telegramUser != null)
                 {
@@ -253,7 +405,7 @@ namespace СrossAppBot
 
             if (message.Document != null)
             {
-                // Retrieve document (file)
+                // Retrieve document (filePath)
                 string fileId = message.Document.FileId;
                 string mimeType = message.Document.MimeType;
                 string fileUrl = await GetTelegramFileUrlById(fileId);
@@ -285,7 +437,7 @@ namespace СrossAppBot
             }
             else
             {
-                return $"https://api.telegram.org/file/bot{this.Token}/{file.FilePath}";
+                return $"https://api.telegram.org/filePath/bot{this.Token}/{file.FilePath}";
             }
         }
 
@@ -298,8 +450,13 @@ namespace СrossAppBot
                 this.filePath = filePath;
                 if (!System.IO.File.Exists(filePath))
                 {
-                    System.IO.File.Create(filePath);
+                    using (FileStream fileStream = System.IO.File.Create(filePath))
+                    {
+                        byte[] emptyJsonObject = System.Text.Encoding.UTF8.GetBytes("{}");
+                        fileStream.Write(emptyJsonObject, 0, emptyJsonObject.Length);
+                    }
                 }
+
             }
 
             public string GetUsername(long id)

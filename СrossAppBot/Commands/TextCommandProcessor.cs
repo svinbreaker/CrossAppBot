@@ -47,6 +47,8 @@ namespace СrossAppBot.Commands
 
         public async Task ProcessCommand(string input, CommandContext context = null)
         {
+            if (input == null) return;
+
             string[] commandArgs = input.Split(_splitters, StringSplitOptions.RemoveEmptyEntries);
 
             if (!input.StartsWith(Prefix) | (commandArgs.Length < 1)) 
