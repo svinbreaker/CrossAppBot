@@ -15,7 +15,7 @@ using Discord.WebSocket;
 using СrossAppBot.Entities.Files;
 using СrossAppBot.Entities;
 using СrossAppBot.Events;
-using System.Net.NetworkInformation;
+
 
 
 namespace СrossAppBot
@@ -93,10 +93,57 @@ namespace СrossAppBot
             {
                 messageReference = int.Parse(messageReferenceId);
             }
+            List<string> fileExtensions = files?.Select(file => Path.GetExtension(file))?.ToList();
 
             if (files == null)
             {
                 await bot.SendTextMessageAsync(chatId: chatId, text: text, replyToMessageId: messageReference);
+            }
+            else if (!fileExtensions.Any(ext => audioFormats.Contains(ext)) ||
+                         fileExtensions.All(ext => audioFormats.Contains(ext)) ||
+                         fileExtensions.All(ext =>
+                             imageFormats.Contains(ext) || videoFormats.Contains(ext) ||
+                             audioFormats.Contains(ext) || animationFormats.Contains(ext)))
+            {
+                IAlbumInputMedia[] album = new IAlbumInputMedia[files.Count];
+
+                var streams = new List<FileStream>();
+                var memoryStreams = new List<MemoryStream>();
+
+                for (int i = 0; i < album.Length; i++)
+                {
+                    string filePath = files[i];
+                    string extension = Path.GetExtension(filePath);
+                    IAlbumInputMedia inputMedia;
+
+                    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    streams.Add(fileStream);
+                    
+                    byte[] fileBytes = new byte[fileStream.Length];
+                    await fileStream.ReadAsync(fileBytes, 0, (int)fileStream.Length);
+                    var memoryStream = new MemoryStream(fileBytes);
+
+                    if (imageFormats.Contains(extension))
+                    {
+                        inputMedia = new InputMediaPhoto(InputFile.FromStream(memoryStream, filePath));
+                    }
+                    else if (audioFormats.Contains(extension))
+                    {
+                        inputMedia = new InputMediaAudio(InputFile.FromStream(memoryStream, filePath));
+                    }
+                    else if (videoFormats.Contains(extension))
+                    {
+                        inputMedia = new InputMediaVideo(InputFile.FromStream(memoryStream, filePath));
+                    }
+                    else
+                    {
+                        inputMedia = new InputMediaDocument(InputFile.FromStream(memoryStream, filePath));
+                    }
+                    album[i] = inputMedia;
+                }
+                await bot.SendMediaGroupAsync(chatId: chatId, media: album, replyToMessageId: messageReference);
+                streams.ForEach(s => s.Close());
+                memoryStreams.ForEach(s => s.Close());
             }
             else
             {
@@ -137,6 +184,7 @@ namespace СrossAppBot
                     }
                 }
             }
+
             /*else if (files.Count == 1)
             {
                 var filePath = files[0];
