@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.Enums;
+using VkNet.Model;
 using СrossAppBot.Entities;
 using СrossAppBot.Entities.Files;
 using СrossAppBot.Events;
@@ -78,7 +79,6 @@ namespace СrossAppBot
             _client.Disconnected += OnBotDisconnected;
             _client.MessageReceived += MessageReceivedAsync;
             _client.MessageUpdated += MessageUpdatedAsync;
-
             //base.Id = _client.CurrentUser.Id.ToString();
 
             await _client.LoginAsync(TokenType.Bot, Token);
@@ -101,8 +101,6 @@ namespace СrossAppBot
         {
             await EventManager.CallEvent(new BotConnectedEvent(this));
         }
-
-
 
         private async Task MessageReceivedAsync(SocketMessage originalMessage)
         {
@@ -279,14 +277,18 @@ namespace СrossAppBot
                         file = new ChatAudio(url);
                         break;
                     case ".mp4":
-                    case ".avi":
+                    case ".webm":
                     case ".mkv":
                         file = new ChatVideo(url, (int)attachment.Width, (int)attachment.Height);
                         break;
                     case ".jpg":
                     case ".jpeg":
+                    case ".JPG":
+                    case ".JPEG":
                     case ".png":
+                    case ".PNG":
                     case ".gif":
+                    case ".gifv":
                         file = new ChatPicture(url, (int)attachment.Width, (int)attachment.Height);
                         break;
                     default:

@@ -15,6 +15,7 @@ using Discord.WebSocket;
 using СrossAppBot.Entities.Files;
 using СrossAppBot.Entities;
 using СrossAppBot.Events;
+using static System.Net.WebRequestMethods;
 
 
 namespace СrossAppBot
@@ -23,7 +24,7 @@ namespace СrossAppBot
     {
         private Telegram.Bot.TelegramBotClient bot;
         private TelegramUsers telegramUsers;
-        
+
 
         public TelegramBotClient(string Token, string dataFilePath = null) : base("Telegram", Token)
         {
@@ -42,7 +43,7 @@ namespace СrossAppBot
 
             var receiverOptions = new ReceiverOptions
             {
-                AllowedUpdates = { } 
+                AllowedUpdates = { }
             };
 
 
@@ -79,15 +80,15 @@ namespace СrossAppBot
                 {
                     case UpdateType.Message:
                         Message originalMessage = update.Message;
-                        ChatMessage message = ConvertTelegramMessageToChatMessage(originalMessage);
+                        ChatMessage message = await ConvertTelegramMessageToChatMessage(originalMessage);
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
                         break;
                 }
 
-                if (update.EditedMessage != null) 
+                if (update.EditedMessage != null)
                 {
                     Message originalMessage = update.EditedMessage;
-                    ChatMessage message = ConvertTelegramMessageToChatMessage(originalMessage);
+                    ChatMessage message = await ConvertTelegramMessageToChatMessage(originalMessage);
 
                     await EventManager.CallEvent(new MessageEditedEvent(message, null));
                 }
@@ -124,11 +125,11 @@ namespace СrossAppBot
                 {
                     ChatMember telegramMember = await bot.GetChatMemberAsync(id, long.Parse(guild.Id));
                     User telegramUser = null;
-                    if (telegramMember != null) 
+                    if (telegramMember != null)
                     {
                         telegramUser = telegramMember.User;
                     }
-                    if (telegramUser != null) 
+                    if (telegramUser != null)
                     {
                         user = ConvertTelegramUserToChatUser(telegramUser, telegramGuild);
                     }
@@ -196,7 +197,7 @@ namespace СrossAppBot
         }
 
         private ChatGuild ConvertTelegramGuildToChatGuild(Chat telegramChat)
-        {       
+        {
             return new ChatGuild(telegramChat.Id.ToString(), this, telegramChat.Title, telegramChat);
         }
 
@@ -213,32 +214,34 @@ namespace СrossAppBot
             );
         }
 
-        private ChatMessage ConvertTelegramMessageToChatMessage(Message message)
+        private async Task<ChatMessage> ConvertTelegramMessageToChatMessage(Message message)
         {
             List<ChatMessageFile> files = new List<ChatMessageFile>();
             if (message.Photo != null && message.Photo.Length > 0)
             {
                 // Retrieve photos
-                foreach (var photo in message.Photo)
+                if (message.Photo != null)
                 {
-                    // Access photo information (file_id, width, height, etc.)
-                    string fileId = photo.FileId;
-                    int width = photo.Width;
-                    int height = photo.Height;
-                    var file = bot.GetFileAsync(photo.FileId).Result;
-                    string fileUrl = $"https://api.telegram.org/file/bot{this.Token}/{file.FilePath}";
-                    files.Add(new ChatPicture(fileUrl, width, height));
-                    // Process or store photo information as needed
+                    foreach (PhotoSize photo in message.Photo)
+                    {
+                        // Access photo information (file_id, width, height, etc.)
+                        string fileId = photo.FileId;
+                        int width = photo.Width;
+                        int height = photo.Height;
+                        string fileUrl = await GetTelegramFileUrlById(fileId);
+                        files.Add(new ChatPicture(fileUrl, width, height));
+                    }
                 }
             }
 
             if (message.Video != null)
             {
                 // Retrieve video
-                string videoFileId = message.Video.FileId;
+                string fileId = message.Video.FileId;
                 int width = message.Video.Width;
                 int height = message.Video.Height;
-                // Process or store video information as needed
+                string fileUrl = await GetTelegramFileUrlById(fileId);
+                files.Add(new ChatPicture(fileUrl, width, height));
             }
 
             if (message.Audio != null)
@@ -246,20 +249,44 @@ namespace СrossAppBot
                 // Retrieve audio
                 string audioFileId = message.Audio.FileId;
                 int duration = message.Audio.Duration;
-                // Process or store audio information as needed
             }
 
             if (message.Document != null)
             {
                 // Retrieve document (file)
-                string documentFileId = message.Document.FileId;
+                string fileId = message.Document.FileId;
                 string mimeType = message.Document.MimeType;
-                // Process or store document information as needed
+                string fileUrl = await GetTelegramFileUrlById(fileId);
+                files.Add(new ChatFile(fileUrl));
             }
 
+            ChatMessage messageReference = null;
+
+            // Forwarded message's message ID
+            int? forwardedMessageId = message.ForwardFromMessageId;
+
+            if (forwardedMessageId != null)
+            {
+                long forwardedChatId = message.ForwardFromChat.Id;
+                Message forwardedMessage = await bot.ForwardMessageAsync(message.Chat.Id, forwardedChatId, forwardedMessageId.Value);
+                messageReference = await ConvertTelegramMessageToChatMessage(forwardedMessage);
+            }
             Chat chat = message.Chat;
             return new ChatMessage(message.MessageId.ToString(), ConvertTelegramUserToChatUser(message.From, chat), ConvertTelegramGuildToChatGuild(chat), this, ConvertTelegramChannelToChatChannel(chat),
-                message, text: message.Text, files: files);
+                message, text: message.Text, messageReference: messageReference, files: files);
+        }
+
+        private async Task<string> GetTelegramFileUrlById(string id)
+        {
+            var file = await bot.GetFileAsync(id);
+            if (file == null)
+            {
+                return null;
+            }
+            else
+            {
+                return $"https://api.telegram.org/file/bot{this.Token}/{file.FilePath}";
+            }
         }
 
         private class TelegramUsers
@@ -269,7 +296,7 @@ namespace СrossAppBot
             public TelegramUsers(string filePath)
             {
                 this.filePath = filePath;
-                if (!System.IO.File.Exists(filePath)) 
+                if (!System.IO.File.Exists(filePath))
                 {
                     System.IO.File.Create(filePath);
                 }
@@ -288,11 +315,11 @@ namespace СrossAppBot
                 }
             }
 
-            public List<long> GetIds(string username) 
+            public List<long> GetIds(string username)
             {
                 string jsonString = System.IO.File.ReadAllText(filePath);
                 Dictionary<long, string> data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<long, string>>(jsonString);
-               
+
                 return data.Keys.Where(key => key.ToString() == username).ToList();
             }
 
