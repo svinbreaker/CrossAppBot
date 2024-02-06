@@ -42,15 +42,16 @@ namespace СrossAppBot
         {
             try
             {
-                List<IReadOnlyCollection<MediaAttachment>> attachments = new List<IReadOnlyCollection<MediaAttachment>>();
+                List<MediaAttachment> attachments = new List<MediaAttachment>();
                 if (files != null)
                 {
                     foreach (string file in files)
                     {
                         string extension = Path.GetExtension(file);
-                        UploadServerInfo server = await GetUploadServer(extension);
-                        string response = await UploadFile(server.UploadUrl, file, extension);
-                        IReadOnlyCollection<Photo> attachment = _api.Photo.SaveMessagesPhoto(response);
+                        /*UploadServerInfo server = await GetUploadServer(fileExtension);
+                        string response = await UploadFile(server.UploadUrl, filePath, fileExtension);
+                        IReadOnlyCollection<Photo> photo = _api.Photo.SaveMessagesPhoto(response);*/
+                        var attachment = await GetAttachment(file);
                         attachments.Add(attachment);
                     }
                 }
@@ -68,10 +69,10 @@ namespace СrossAppBot
 
                 MessagesSendParams sendMessageParams = new MessagesSendParams
                 {
-                    RandomId = new Random().Next(), // Generate a random ID for the vkMessage
+                    RandomId = new Random().Next(), // Generate uploadServer random ID for the vkMessage
                     PeerId = peerId, // Specify the recipient's ID
                     Message = text, // Set the vkMessage content      
-                    Attachments = attachments.SelectMany(attachments => attachments),
+                    Attachments = attachments,
                     Forward = messageForward
                 };
 
@@ -142,7 +143,7 @@ namespace СrossAppBot
                 {
                     foreach (Message originalMessage in messages)
                     {
-                        ChatMessage message = ConvertVkMessageToChatMessage(originalMessage);                    
+                        ChatMessage message = ConvertVkMessageToChatMessage(originalMessage);
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
                     }
                 }
@@ -273,18 +274,100 @@ namespace СrossAppBot
             return user;
         }
 
-        private async Task<UploadServerInfo> GetUploadServer(string fileExtension)
+        private async Task<MediaAttachment> GetAttachment(string filePath)
+        {
+            string fileExtension = Path.GetExtension(filePath);
+            switch (fileExtension)
+            {
+                case ".png":
+                case ".jpg":
+                case ".gif":
+                case ".tif":
+                    var uploadServer = await _api.Photo.GetMessagesUploadServerAsync(0);
+                    // Получение массива байтов из файла
+                    var data = File.ReadAllBytes(filePath);
+
+                    // Создание запроса на загрузку файла на сервер
+                    using (var client = new HttpClient())
+                    {
+                        var requestContent = new MultipartFormDataContent();
+                        var content = new ByteArrayContent(data);
+                        content.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+                        requestContent.Add(content, "filePath", $"filePath.{fileExtension}");
+
+                        var response = client.PostAsync(uploadServer.UploadUrl, requestContent).Result;
+
+                        var result = Encoding.Default.GetString(await response.Content.ReadAsByteArrayAsync());
+                        var photo = await _api.Photo.SaveMessagesPhotoAsync(result);
+                        return photo[0];
+                    }
+                case ".avi":
+                case ".mp4":
+                case ".3gp":
+                case ".mpeg":
+                case ".mov":
+                case ".flv":
+                case ".f4v":
+                case ".wmv":
+                case ".mkv":
+                case ".webm":
+                case ".vob":
+                case ".rm":
+                case ".rmvb":
+                case ".m4v":
+                case ".mpg":
+                case ".ogv":
+                case ".ts":
+                case ".m2ts":
+                case ".mts":
+                    var video = await _api.Video.SaveAsync(new VideoSaveParams
+                    {
+                        Name = Path.GetFileNameWithoutExtension(filePath),
+                        Description = null,
+                        Wallpost = false, 
+                        GroupId = null,
+                        IsPrivate = true,
+                    });
+                    return video;
+
+                default:
+                    throw new ArgumentException("File format is not supported: " + fileExtension);
+            }
+        }
+
+        /*private async Task<UploadServerInfo> GetUploadServer(string fileExtension)
         {
             switch (fileExtension)
             {
                 case ".png":
                 case ".jpg":
                 case ".gif":
+                case ".tif":
                     return await _api.Photo.GetMessagesUploadServerAsync(0);
+                case "avi":
+                case "mp4":
+                case "3gp":
+                case "mpeg":
+                case "mov":
+                case "flv":
+                case "f4v":
+                case "wmv":
+                case "mkv":
+                case "webm":
+                case "vob":
+                case "rm":
+                case "rmvb":
+                case "m4v":
+                case "mpg":
+                case "ogv":
+                case "ts":
+                case "m2ts":
+                case "mts":
+                    return await _api.Video.SaveAsync
                 default:
                     throw new ArgumentException("File is not supported");
             }
-        }
+        }*/
         private async Task<string> UploadFile(string serverUrl, string filePath, string fileExtension)
         {
             // Получение массива байтов из файла
@@ -296,7 +379,7 @@ namespace СrossAppBot
                 var requestContent = new MultipartFormDataContent();
                 var content = new ByteArrayContent(data);
                 content.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-                requestContent.Add(content, "file", $"file.{fileExtension}");
+                requestContent.Add(content, "filePath", $"filePath.{fileExtension}");
 
                 var response = client.PostAsync(serverUrl, requestContent).Result;
                 return Encoding.Default.GetString(await response.Content.ReadAsByteArrayAsync());
