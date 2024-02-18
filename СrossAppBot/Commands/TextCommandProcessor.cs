@@ -65,7 +65,7 @@ namespace СrossAppBot.Commands
             }
 
             await ParseArguments(commandArgs, command, context);
-            await command.Execute(context);
+            await command.Execute(context); 
         }
 
         public void AddCommand(AbstractCommand command) 

@@ -498,11 +498,12 @@ namespace СrossAppBot
                 this.filePath = filePath;
                 if (!System.IO.File.Exists(filePath))
                 {
-                    using (FileStream fileStream = System.IO.File.Create(filePath))
+                    System.IO.File.WriteAllText(filePath, "{}");
+                    /*using (FileStream fileStream = System.IO.File.Create(filePath))
                     {
                         byte[] emptyJsonObject = System.Text.Encoding.UTF8.GetBytes("{}");
                         fileStream.Write(emptyJsonObject, 0, emptyJsonObject.Length);
-                    }
+                    }*/
                 }
 
             }

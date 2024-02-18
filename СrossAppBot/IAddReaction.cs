@@ -7,7 +7,7 @@ using СrossAppBot.Entities;
 
 namespace СrossAppBot
 {
-    public interface IAddReaction
+    public interface IAddReaction : IBotExtension
     {
         public Task AddReaction(ChatMessage message, string reaction); 
     }

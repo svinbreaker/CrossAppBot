@@ -26,7 +26,7 @@ namespace СrossAppBot
     public class VkBotClient : AbstractBotClient, IEmojiable, IAddReaction
     {
         private VkApi _api = new VkApi();
-        private ulong GroupId;
+        public ulong GroupId;
 
         private static List<string> _emojis = new List<string> { "❤️", "🔥", "😂", "👍", "💩", "❓", "😭", "👎", "👌", "😡", "😃", "🤔", "🙏", "😘", "😍", "🎉" };
 
@@ -320,7 +320,7 @@ namespace СrossAppBot
                 case ".ts":
                 case ".m2ts":
                 case ".mts":
-                    var video = await _api.Video.SaveAsync(new VideoSaveParams
+                    /*var video = await _api.Video.SaveAsync(new VideoSaveParams
                     {
                         Name = Path.GetFileNameWithoutExtension(filePath),
                         Description = null,
@@ -328,46 +328,14 @@ namespace СrossAppBot
                         GroupId = null,
                         IsPrivate = true,
                     });
-                    return video;
+                    return video;*/
 
                 default:
                     throw new ArgumentException("File format is not supported: " + fileExtension);
             }
         }
 
-        /*private async Task<UploadServerInfo> GetUploadServer(string fileExtension)
-        {
-            switch (fileExtension)
-            {
-                case ".png":
-                case ".jpg":
-                case ".gif":
-                case ".tif":
-                    return await _api.Photo.GetMessagesUploadServerAsync(0);
-                case "avi":
-                case "mp4":
-                case "3gp":
-                case "mpeg":
-                case "mov":
-                case "flv":
-                case "f4v":
-                case "wmv":
-                case "mkv":
-                case "webm":
-                case "vob":
-                case "rm":
-                case "rmvb":
-                case "m4v":
-                case "mpg":
-                case "ogv":
-                case "ts":
-                case "m2ts":
-                case "mts":
-                    return await _api.Video.SaveAsync
-                default:
-                    throw new ArgumentException("File is not supported");
-            }
-        }*/
+ 
         private async Task<string> UploadFile(string serverUrl, string filePath, string fileExtension)
         {
             // Получение массива байтов из файла

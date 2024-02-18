@@ -15,20 +15,21 @@ namespace СrossAppBot
         public string Token { get; set; }
         public string Id { get; set; }
 
-        private EventManager eventManager = new EventManager();
+        public EventManager EventManager;      
 
-        public EventManager EventManager
-        {
-            get
-            {
-                return eventManager;
-            }
-        }
-
-        public AbstractBotClient(string name, string token)
+        public AbstractBotClient(string name, string token, EventManager eventManager = null)
         {
             Name = name;
             Token = token;
+
+            if (eventManager == null) 
+            {
+                EventManager = new EventManager();
+            }
+            else 
+            {
+                EventManager = eventManager;
+            }
         }
 
         public TextCommandProcessor TextCommandProcessor { get; set; }

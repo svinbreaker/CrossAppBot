@@ -115,10 +115,13 @@ namespace СrossAppBot
             SocketGuild discordGuild = (after.Channel as SocketGuildChannel).Guild;
             var beforeMessage = before.HasValue ? before.Value as SocketUserMessage : null;
 
-            ChatMessage message = ConvertDiscordMessageToChatMessage(after);
-            if (beforeMessage.Content != after.Content)
+            if (beforeMessage != null && after != null)
             {
-                await EventManager.CallEvent(new MessageEditedEvent(message, null));
+                if (beforeMessage.Content != after.Content)
+                {
+                    ChatMessage message = ConvertDiscordMessageToChatMessage(after);
+                    await EventManager.CallEvent(new MessageEditedEvent(message, null));
+                }
             }
         }
 
