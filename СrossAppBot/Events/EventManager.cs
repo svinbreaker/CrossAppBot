@@ -17,8 +17,6 @@ namespace СrossAppBot.Events
         // Use a dictionary to map event types to lists of event handlers
         private Dictionary<Type, List<Delegate>> eventHandlers = new Dictionary<Type, List<Delegate>>();
 
-        EventLogger logger = new EventLogger(LogSettings.Auto);
-
         // Subscribe to an events
         public void Subscribe<T>(params EventHandler<T>[] handlers) where T : AbstractClientEvent
         {
@@ -53,13 +51,7 @@ namespace СrossAppBot.Events
             {
                 foreach (var handler in eventHandlers[typeof(T)])
                 {
-                    await ((EventHandler<T>)handler)(clientEvent);
-
-                    //temp logging solution
-                    if (logger.Settings == LogSettings.Auto)
-                    {
-                        await logger.LogEventAsync(clientEvent);
-                    }
+                    await ((EventHandler<T>)handler)(clientEvent);                 
                 }
             }
         }

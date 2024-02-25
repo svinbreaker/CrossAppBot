@@ -92,7 +92,7 @@ namespace СrossAppBot
 
             });
 
-            var botUser = await _api.Users.GetAsync(new long[] { (long)GroupId });
+
 
             LongPollServerResponse longPollServer = null;
             try

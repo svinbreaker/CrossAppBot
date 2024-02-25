@@ -63,7 +63,7 @@ namespace СrossAppBot
             bot = new Telegram.Bot.TelegramBotClient(Token);
             var cts = new CancellationTokenSource();
             var cancellationToken = cts.Token;
-            //base.Id =  bot.GetMeAsync().Id.ToString();
+            base.Id = (await bot.GetMeAsync()).Id.ToString();
 
             var receiverOptions = new ReceiverOptions
             {

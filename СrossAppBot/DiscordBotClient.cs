@@ -79,10 +79,11 @@ namespace СrossAppBot
             _client.Disconnected += OnBotDisconnected;
             _client.MessageReceived += MessageReceivedAsync;
             _client.MessageUpdated += MessageUpdatedAsync;
-            //base.Id = _client.CurrentUser.Id.ToString();
 
             await _client.LoginAsync(TokenType.Bot, Token);
             await _client.StartAsync();
+            await Task.Delay(10000);
+            await Task.Run(() => base.Id = _client.CurrentUser.Id.ToString());
             await Task.Delay(-1);
         }
 
