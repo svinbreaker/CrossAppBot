@@ -258,7 +258,13 @@ namespace СrossAppBot
 
         private ChatChannel ConvertDiscordChannelToChatChannel(ISocketMessageChannel discordChannel)
         {
-            return new ChatChannel(discordChannel.Name, discordChannel.Name, ConvertDiscordGuildToChatGuild((discordChannel as SocketGuildChannel).Guild), discordChannel as SocketGuildChannel)
+            ChatGuild guild = null;
+            bool isPrivate = discordChannel is IDMChannel;
+            if (!isPrivate) 
+            {
+                guild = ConvertDiscordGuildToChatGuild((discordChannel as SocketGuildChannel).Guild);
+            }
+            return new ChatChannel(discordChannel.Name, discordChannel.Name, isPrivate, discordChannel as SocketGuildChannel, guild)
             {
                 Id = discordChannel.Id.ToString(),
                 Name = discordChannel.Name

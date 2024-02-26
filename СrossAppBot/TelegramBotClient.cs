@@ -403,7 +403,13 @@ namespace СrossAppBot
 
         private ChatChannel ConvertTelegramChannelToChatChannel(Chat telegramChat)
         {
-            return new ChatChannel(telegramChat.Id.ToString(), telegramChat.Title, ConvertTelegramGuildToChatGuild(telegramChat), telegramChat);
+            ChatGuild guild = null;
+            bool isPrivate = telegramChat.Type == ChatType.Private;
+            if (!isPrivate) 
+            {
+                guild = ConvertTelegramGuildToChatGuild(telegramChat);
+            }
+            return new ChatChannel(telegramChat.Id.ToString(), telegramChat.Title, isPrivate, telegramChat, guild: guild);
         }
 
         private ChatUser ConvertTelegramUserToChatUser(User telegramUser, Chat telegramChat)

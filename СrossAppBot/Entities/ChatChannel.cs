@@ -11,14 +11,16 @@ namespace СrossAppBot.Entities
         public string Id { get; set; }
         public string Name { get; set; }
         public ChatGuild Guild { get; set;}
+        public bool IsPrivate { get; set; }
 
         public object OriginalObject { get; set; }
 
-        public ChatChannel(string id, string name, ChatGuild guild, object originalObject)
+        public ChatChannel(string id, string name, bool isPrivate, object originalObject, ChatGuild guild = null)
         {
             Id = id;
             Name = name;
             Guild = guild;
+            IsPrivate = isPrivate;
             OriginalObject = originalObject;
         }
     }

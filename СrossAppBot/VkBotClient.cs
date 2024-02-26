@@ -200,28 +200,50 @@ namespace СrossAppBot
 
         private ChatGuild ConvertVkGuildToChatGuild(Conversation conversation)
         {
+            string conversationName = null;
             ConversationChatSettings settings = conversation.ChatSettings;
-            return new ChatGuild(conversation.Peer.ToString(), this, settings.Title, conversation);
+            if (settings != null) 
+            {
+                conversationName = settings.Title;
+            }
+            return new ChatGuild(conversation.Peer.ToString(), this, conversationName, conversation);
         }
 
         private ChatChannel ConvertVkChannelToChatChannel(Conversation conversation)
         {
+            ChatGuild guild = null;
+            bool isPrivate = conversation.Peer.Id < 2000000000;
+            if (!isPrivate) 
+            {
+                guild = ConvertVkGuildToChatGuild(conversation);
+            }
+            Console.WriteLine(conversation.Peer.Id);
+            string conversationName = null;
             ConversationChatSettings settings = conversation.ChatSettings;
-            return new ChatChannel(conversation.Peer.Id.ToString(), settings.Title, ConvertVkGuildToChatGuild(conversation), conversation);
+            if (settings != null) //The settings are null if the bot is not have administrator rights
+            {
+                conversationName = settings.Title;
+            }
+
+            return new ChatChannel(conversation.Peer.Id.ToString(), conversationName, isPrivate, conversation, guild);
         }
 
         private ChatUser ConvertVkUserToChatUser(User vkUser, Conversation conversation)
         {
             long vkUserId = vkUser.Id;
             bool isAdmin = false;
+            bool isOwner = false;
             ConversationChatSettings chatSettings = conversation.ChatSettings;
-            if (chatSettings.AdminIds != null & chatSettings.AdminIds.Count > 0)
+            if (chatSettings != null)
             {
-                isAdmin = chatSettings.AdminIds.Contains(vkUser.Id);
+                if (chatSettings.AdminIds != null & chatSettings.AdminIds.Count > 0)
+                {
+                    isAdmin = chatSettings.AdminIds.Contains(vkUser.Id);
+                }
             }
 
             return new ChatUser(vkUserId.ToString(), vkUser.FirstName, this, conversation,
-                isOwner: conversation.ChatSettings.OwnerId == vkUserId,
+                isOwner: isOwner,
                 isAdmin: isAdmin);
         }
 
