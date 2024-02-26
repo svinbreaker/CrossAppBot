@@ -13,19 +13,21 @@ namespace СrossAppBot.Commands
         public string Name { get; set; }
         public string Description { get; set; }
         //private List<PropertyInfo> properties = new List<PropertyInfo>();
+        public List<CommandCondition> Conditions { get; set; }
 
-        public AbstractCommand(string name, string description) 
+        public AbstractCommand(string name, string description, List<CommandCondition> conditions = null)
         {
             Name = name;
             Description = description;
+            Conditions = conditions;
             //properties = this.GetType().GetProperties().Where(
-             //   prop => Attribute.IsDefined(prop, typeof(CommandParameterAttribute))).ToList();
+            //   prop => Attribute.IsDefined(prop, typeof(CommandParameterAttribute))).ToList();
         }
 
 
-        
 
-        /*public async Task Execute(string command, CommandContext context = null) 
+
+        /*public async Task TryExecute(string command, CommandContext context = null) 
         {
             string[] stringParameters = command.Split(' ');
             List<object> parameters = new List<object>();
@@ -63,9 +65,22 @@ namespace СrossAppBot.Commands
                 }
             }
 
-            await Execute(parameters, context);
+            await TryExecute(parameters, context);
         }*/
 
-        public abstract Task Execute(CommandContext context = null);
+        public async Task TryExecute(CommandContext context) 
+        {
+            foreach(CommandCondition condition in Conditions) 
+            {
+                bool result = await condition.ExecuteIfTrueAsync(context);
+                if (result == true) 
+                {
+                    break;
+                }
+            }
+
+            await Execute(context);
+        }
+        public abstract Task Execute(CommandContext context);
     }
 }
