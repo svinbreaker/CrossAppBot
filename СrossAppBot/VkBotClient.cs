@@ -217,7 +217,6 @@ namespace СrossAppBot
             {
                 guild = ConvertVkGuildToChatGuild(conversation);
             }
-            Console.WriteLine(conversation.Peer.Id);
             string conversationName = null;
             ConversationChatSettings settings = conversation.ChatSettings;
             if (settings != null) //The settings are null if the bot is not have administrator rights

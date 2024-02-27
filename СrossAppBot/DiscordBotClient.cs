@@ -79,11 +79,9 @@ namespace СrossAppBot
             _client.Disconnected += OnBotDisconnected;
             _client.MessageReceived += MessageReceivedAsync;
             _client.MessageUpdated += MessageUpdatedAsync;
-
+            _client.Ready += OnBotReady;
             await _client.LoginAsync(TokenType.Bot, Token);
             await _client.StartAsync();
-            await Task.Delay(10000);
-            await Task.Run(() => base.Id = _client.CurrentUser.Id.ToString());
             await Task.Delay(-1);
         }
 
@@ -96,6 +94,11 @@ namespace СrossAppBot
         private async Task OnBotConnected()
         {
             await EventManager.CallEvent(new BotConnectedEvent(this));
+        }
+
+        private async Task OnBotReady() 
+        {
+            base.Id = _client.CurrentUser.Id.ToString();
         }
 
         public async Task OnBotDisconnected(Exception exception)
