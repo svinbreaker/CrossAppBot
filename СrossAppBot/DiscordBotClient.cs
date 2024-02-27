@@ -6,8 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using VkNet.Model;
 using СrossAppBot.Entities;
 using СrossAppBot.Entities.Files;
 using СrossAppBot.Events;
@@ -30,10 +30,9 @@ namespace СrossAppBot
         {
             try
             {
-                Console.WriteLine("aa");
-                ulong parsedChannelId = ulong.Parse(channelId); 
+                ulong parsedChannelId = ulong.Parse(channelId);
                 IMessageChannel channel = await _client.GetChannelAsync(parsedChannelId) as IMessageChannel;
-                if (channel == null) 
+                if (channel == null)
                 {
                     channel = await _client.GetDMChannelAsync(parsedChannelId) as IMessageChannel;
                 }
@@ -77,7 +76,7 @@ namespace СrossAppBot
 
         public override async Task StartAsync()
         {
-            _config = new DiscordSocketConfig { GatewayIntents = GatewayIntents.MessageContent | GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.All,  };
+            _config = new DiscordSocketConfig { GatewayIntents = GatewayIntents.MessageContent | GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.All, };
             _client = new DiscordSocketClient(_config);
             //_client.Log += LogAsync;           
             _client.Connected += OnBotConnected;
@@ -101,7 +100,7 @@ namespace СrossAppBot
             await EventManager.CallEvent(new BotConnectedEvent(this));
         }
 
-        private async Task OnBotReady() 
+        private async Task OnBotReady()
         {
             base.Id = _client.CurrentUser.Id.ToString();
         }
@@ -121,7 +120,7 @@ namespace СrossAppBot
                 chatGuild = ConvertDiscordGuildToChatGuild(discordGuild);
             }
 
-            ChatMessage message = ConvertDiscordMessageToChatMessage(originalMessage);
+            ChatMessage message = await ConvertDiscordMessageToChatMessage(originalMessage);
             await EventManager.CallEvent(new MessageReceivedEvent(message));
         }
         private async Task MessageUpdatedAsync(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
@@ -133,7 +132,7 @@ namespace СrossAppBot
             {
                 if (beforeMessage.Content != after.Content)
                 {
-                    ChatMessage message = ConvertDiscordMessageToChatMessage(after);
+                    ChatMessage message = await ConvertDiscordMessageToChatMessage(after);
                     await EventManager.CallEvent(new MessageEditedEvent(message, null));
                 }
             }
@@ -279,7 +278,7 @@ namespace СrossAppBot
         {
             ChatGuild guild = null;
             bool isPrivate = discordChannel is IDMChannel;
-            if (!isPrivate) 
+            if (!isPrivate)
             {
                 guild = ConvertDiscordGuildToChatGuild((discordChannel as SocketGuildChannel).Guild);
             }
@@ -290,7 +289,7 @@ namespace СrossAppBot
             };
         }
 
-        private ChatMessage ConvertDiscordMessageToChatMessage(SocketMessage discordMessage)
+        private async Task<ChatMessage> ConvertDiscordMessageToChatMessage(SocketMessage discordMessage)
         {
             SocketGuild discordGuild = null;
             ChatGuild chatGuild = null;
@@ -302,13 +301,60 @@ namespace СrossAppBot
                 chatGuild = ConvertDiscordGuildToChatGuild(discordGuild);
                 author = ConvertDiscordUserToChatUser(discordGuild.GetUser(discordMessage.Author.Id));
             }
-            else 
+            else
             {
                 author = ConvertDiscordUserToChatUser(discordMessage.Author);
             }
 
+            MessageReference discordMessageReference = discordMessage.Reference;
+            ChatMessage messageReference = null;
+            if (discordMessageReference != null)
+            {
+                messageReference = await ConvertDiscordMessageReferenceToChatMessage(discordMessageReference, discordMessage.Channel);
+            }
+
+           /* var repliedMessage = await discordMessage.Channel.GetMessageAsync((ulong)discordMessage.Reference.MessageId);
+            var repliedAuthor = repliedMessage.Author;*/
+
+
+            return new ChatMessage(discordMessage.Id.ToString(), author,
+                chatGuild, this, ConvertDiscordChannelToChatChannel(discordChannel), discordMessage, text: discordMessage.Content, messageReference: messageReference,
+                files: GetFilesFromAttachments(discordMessage.Attachments));
+        }
+
+        private async Task<ChatMessage> ConvertDiscordMessageReferenceToChatMessage(MessageReference discordMessageReference, ISocketMessageChannel discordChannel)
+        {
+            ChatUser author = null;
+            ChatGuild guild = null;
+
+            var discordMessage = await discordChannel.GetMessageAsync(discordMessageReference.MessageId.Value);
+            ulong authorId = discordMessage.Author.Id;
+
+            if (discordMessageReference.GuildId.IsSpecified)
+            {
+                SocketGuild discordGuild = _client.GetGuild(discordMessageReference.GuildId.Value);
+                SocketGuildUser discordUser = discordGuild.GetUser(authorId);
+
+                author = ConvertDiscordUserToChatUser(discordUser);
+                guild = ConvertDiscordGuildToChatGuild(discordGuild);
+            }
+            else
+            {
+                SocketUser discordUser = (SocketUser)await _client.GetUserAsync(authorId);
+                author = ConvertDiscordUserToChatUser(discordUser);
+            }
+
+            ChatMessage messageReference = new ChatMessage(id: discordMessageReference.MessageId.ToString(), author: author,
+                                            guild: guild, client: this, channel: ConvertDiscordChannelToChatChannel(discordChannel),
+                                            originalObject: discordMessage, files: GetFilesFromAttachments(discordMessage.Attachments.ToList()));
+
+            return messageReference;
+        }
+
+        private List<ChatMessageFile> GetFilesFromAttachments(IEnumerable<IAttachment> attachments)
+        {
             List<ChatMessageFile> files = new List<ChatMessageFile>();
-            foreach (Discord.Attachment attachment in discordMessage.Attachments)
+            foreach (Discord.Attachment attachment in attachments)
             {
                 string url = attachment.Url;
                 ChatMessageFile file = null;
@@ -340,10 +386,9 @@ namespace СrossAppBot
                 }
                 files.Add(file);
             }
-
-            return new ChatMessage(discordMessage.Id.ToString(), author,
-                chatGuild, this, ConvertDiscordChannelToChatChannel(discordChannel), discordMessage, text: discordMessage.Content, files: files);
+            return files;
         }
+
 
         private SocketGuildUser GetDiscordUser(ChatUser user, ChatGuild guild)
         {
