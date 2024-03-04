@@ -22,7 +22,6 @@ namespace СrossAppBot.Commands
                     { typeof(float), new DoubleArgumentParser() },
                     { typeof(float?), new DoubleArgumentParser() },
                     { typeof(string), new StringArgumentParser() },
-                    { typeof(string), new StringArgumentParser() },
                     { typeof(ChatUser), new ChatUserArgumentParser() }
                 };
                 return dictionary;

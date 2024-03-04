@@ -1,25 +1,34 @@
 ﻿using Discord;
+using Discord.Commands;
+using Discord.Net;
 using Discord.WebSocket;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using СrossAppBot.Commands;
 using СrossAppBot.Entities;
 using СrossAppBot.Entities.Files;
 using СrossAppBot.Events;
+using CommandContext = СrossAppBot.Commands.CommandContext;
 using Emoji = Discord.Emoji;
 
 namespace СrossAppBot
 {
-    public class DiscordBotClient : AbstractBotClient, IEmojiable, IAddReaction
+    public class DiscordBotClient : AbstractBotClient, IEmojiable, IAddReaction, ISlashable
     {
 
         private DiscordSocketClient _client;
         private DiscordSocketConfig _config;
+
+        private List<AbstractCommand> slashCommandsToRegister = new List<AbstractCommand>();
 
         public DiscordBotClient(string Token) : base("Discord", Token)
         {
@@ -83,7 +92,9 @@ namespace СrossAppBot
             _client.Disconnected += OnBotDisconnected;
             _client.MessageReceived += MessageReceivedAsync;
             _client.MessageUpdated += MessageUpdatedAsync;
+            _client.SlashCommandExecuted += SlashCommandHandler;
             _client.Ready += OnBotReady;
+            _client.Ready += AddSlashCommandToRegister;
             await _client.LoginAsync(TokenType.Bot, Token);
             await _client.StartAsync();
             await Task.Delay(-1);
@@ -313,8 +324,8 @@ namespace СrossAppBot
                 messageReference = await ConvertDiscordMessageReferenceToChatMessage(discordMessageReference, discordMessage.Channel);
             }
 
-           /* var repliedMessage = await discordMessage.Channel.GetMessageAsync((ulong)discordMessage.Reference.MessageId);
-            var repliedAuthor = repliedMessage.Author;*/
+            /* var repliedMessage = await discordMessage.Channel.GetMessageAsync((ulong)discordMessage.Reference.MessageId);
+             var repliedAuthor = repliedMessage.Author;*/
 
 
             return new ChatMessage(discordMessage.Id.ToString(), author,
@@ -413,11 +424,106 @@ namespace СrossAppBot
             return _client.GetGuild(ulong.Parse(guild.Id));
         }
 
+        private SocketGuild GetDiscordGuild(ulong? guildId)
+        {
+            return _client.GetGuild(guildId.Value);
+        }
+
         private static string GetFileExtensionFromUrl(string url)
         {
             url = url.Split('?')[0];
             url = url.Split('/').Last();
             return url.Contains('.') ? url.Substring(url.LastIndexOf('.')) : "";
+        }
+
+        public async Task RegisterSlashCommand(AbstractCommand command) 
+        {
+            slashCommandsToRegister.Add(command);
+        }
+        public async Task AddSlashCommandToRegister()
+        {
+            foreach (AbstractCommand command in slashCommandsToRegister)
+            {
+                SlashCommandBuilder slashCommand = new SlashCommandBuilder()
+                                                    .WithName(command.Name)
+                                                    .WithDescription(command.Description);
+                foreach (CommandArgument argument in command.GetArguments())
+                {
+                    ApplicationCommandOptionType slashCommandParameterType;
+                    switch (argument.Type)
+                    {
+                        case var t when t == typeof(int):
+                            slashCommandParameterType = ApplicationCommandOptionType.Integer;
+                            break;
+                        case var t when t == typeof(int?):
+                            slashCommandParameterType = ApplicationCommandOptionType.Integer;
+                            break;
+                        case var t when t == typeof(bool):
+                            slashCommandParameterType = ApplicationCommandOptionType.Boolean;
+                            break;
+                        case var t when t == typeof(bool?):
+                            slashCommandParameterType = ApplicationCommandOptionType.Boolean;
+                            break;
+                        case var t when t == typeof(ChatUser):
+                            slashCommandParameterType = ApplicationCommandOptionType.User;
+                            break;
+                        case var t when t == typeof(ChatChannel):
+                            slashCommandParameterType = ApplicationCommandOptionType.Channel;
+                            break;
+                        case var t when t == typeof(double?):
+                            slashCommandParameterType = ApplicationCommandOptionType.Number;
+                            break;
+                        case var t when t == typeof(float?):
+                            slashCommandParameterType = ApplicationCommandOptionType.Number;
+                            break;
+                        case var t when t == typeof(double):
+                            slashCommandParameterType = ApplicationCommandOptionType.Number;
+                            break;
+                        case var t when t == typeof(float):
+                            slashCommandParameterType = ApplicationCommandOptionType.Number;
+                            break;
+                        case var t when t == typeof(ChatMessageFile):
+                            slashCommandParameterType = ApplicationCommandOptionType.Attachment;
+                            break;
+                        default:
+                            slashCommandParameterType = ApplicationCommandOptionType.String;
+                            break;
+                    }
+                    CommandArgumentAttribute attributes = argument.Attributes;
+
+                    slashCommand.AddOption(attributes.Name, slashCommandParameterType, attributes.Description, attributes.Optional);
+                }
+                try
+                {
+                    await _client.CreateGlobalApplicationCommandAsync(slashCommand.Build());
+                }
+                catch (HttpException exception)
+                {
+                    var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
+                    Console.WriteLine(json);
+                }
+            }
+        }
+
+        public async Task ExecuteSlashCommand(AbstractCommand command, CommandContext context)
+        {
+            await command.Execute(context);
+        }
+
+        private async Task SlashCommandHandler(SocketSlashCommand slashCommand)
+        {
+            CommandManager commandManager = null;
+            AbstractCommand command = commandManager.CreateCommandInstance(slashCommand.CommandName, slashCommand.Data.Options.ToArray());
+
+            CommandContext context = new CommandContext(
+                sender: ConvertDiscordUserToChatUser(slashCommand.User),
+                guild: ConvertDiscordGuildToChatGuild(GetDiscordGuild(slashCommand.GuildId)),
+                channel: ConvertDiscordChannelToChatChannel(slashCommand.Channel),
+                client: this,
+                message: null
+            );
+
+            await ExecuteSlashCommand(command, context);
         }
     }
 }

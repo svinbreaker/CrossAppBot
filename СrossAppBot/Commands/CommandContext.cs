@@ -14,5 +14,19 @@ namespace СrossAppBot.Commands
         public ChatChannel Channel { get; set; }
         public AbstractBotClient Client { get; set; }
         public ChatMessage Message { get; set; }
+
+        public CommandContext(
+        ChatUser sender = null,
+        ChatGuild guild = null,
+        ChatChannel channel = null,
+        AbstractBotClient client = null,
+        ChatMessage message = null)
+        {
+            Sender = sender;
+            Guild = guild;
+            Channel = channel;
+            Client = client;
+            Message = message;
+        }
     }
 }

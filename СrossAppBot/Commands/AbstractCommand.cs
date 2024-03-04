@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using СrossAppBot.Commands.Parameters;
 
-namespace СrossAppBot.Commands 
+namespace СrossAppBot.Commands
 {
     public abstract class AbstractCommand
     {
@@ -68,12 +69,12 @@ namespace СrossAppBot.Commands
             await TryExecute(parameters, context);
         }*/
 
-        public async Task TryExecute(CommandContext context) 
+        public async Task TryExecute(CommandContext context)
         {
-            foreach(CommandCondition condition in Conditions) 
+            foreach (CommandCondition condition in Conditions)
             {
                 bool result = await condition.ExecuteIfTrueAsync(context);
-                if (result == true) 
+                if (result == true)
                 {
                     break;
                 }
@@ -82,5 +83,31 @@ namespace СrossAppBot.Commands
             await Execute(context);
         }
         public abstract Task Execute(CommandContext context);
+
+        public List<CommandArgument> GetArguments()
+        {
+            List<CommandArgument> arguments = new List<CommandArgument>();
+            List<PropertyInfo> properties = GetArgumentsProperties();
+            if (properties != null & properties.Count > 0)
+            {
+                foreach (PropertyInfo property in properties)
+                {
+                    arguments.Add(new CommandArgument(property.PropertyType, GetArgumentAttributes(property)));
+                }
+            }
+            return arguments;
+        }
+
+        private List<PropertyInfo> GetArgumentsProperties()
+        {
+            List<PropertyInfo> properties = this.GetType().GetProperties().Where(property => property.IsDefined(typeof(CommandArgumentAttribute), false)).ToList();
+            return properties;
+        }
+
+        private CommandArgumentAttribute GetArgumentAttributes(PropertyInfo argumentProperties)
+        {
+            CommandArgumentAttribute attributes = (CommandArgumentAttribute)Attribute.GetCustomAttribute(argumentProperties, typeof(CommandArgumentAttribute));
+            return attributes;
+        }
     }
 }

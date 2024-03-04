@@ -15,9 +15,10 @@ namespace СrossAppBot
         public string Token { get; set; }
         public string Id { get; set; }
 
-        public EventManager EventManager;      
+        public EventManager EventManager;
+        public CommandManager CommandManager { get; set; }
 
-        public AbstractBotClient(string name, string token, EventManager eventManager = null)
+        public AbstractBotClient(string name, string token, EventManager eventManager = null, CommandManager commandManager = null)
         {
             Name = name;
             Token = token;
@@ -30,9 +31,17 @@ namespace СrossAppBot
             {
                 EventManager = eventManager;
             }
+
+            if (commandManager == null)
+            {
+                CommandManager = new CommandManager();
+            }
+            else
+            {
+                CommandManager = commandManager;
+            }
         }
 
-        public TextCommandProcessor TextCommandProcessor { get; set; }
         public abstract Task StartAsync();
         public abstract Task SendMessageAsync(string channelId, string text = null, string messageReferenceId = null, List<string> files = null);
 

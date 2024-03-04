@@ -10,6 +10,7 @@ using static СrossAppBot.Commands.DefaultArgumentParsers;
 
 namespace СrossAppBot.Commands
 {
+    //deprecated
     public class TextCommandProcessor
     {
         private Dictionary<Type, IArgumentParser> parsers = new Dictionary<Type, IArgumentParser>();
