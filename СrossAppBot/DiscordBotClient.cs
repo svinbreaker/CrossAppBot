@@ -13,6 +13,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using VkNet.Model;
 using СrossAppBot.Commands;
 using СrossAppBot.Entities;
 using СrossAppBot.Entities.Files;
@@ -85,7 +86,7 @@ namespace СrossAppBot
 
         public override async Task StartAsync()
         {
-            _config = new DiscordSocketConfig { GatewayIntents = GatewayIntents.MessageContent | GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.All, };
+            _config = new DiscordSocketConfig { GatewayIntents = GatewayIntents.MessageContent | GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.All, UseInteractionSnowflakeDate = false };
             _client = new DiscordSocketClient(_config);
             //_client.Log += LogAsync;           
             _client.Connected += OnBotConnected;
@@ -528,6 +529,19 @@ namespace СrossAppBot
                 discordUser = discordGuild.GetUser(slashCommand.User.Id);
             }
             CommandContext context = new CommandContext(
+
+                async (text, reply, files) =>
+                {
+                    try
+                    {
+                        await slashCommand.RespondAsync(text);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message + "\n" + e.ToString());
+                    }
+                },
+
                 sender: ConvertDiscordUserToChatUser((SocketGuildUser) discordUser),
                 guild: ConvertDiscordGuildToChatGuild(GetDiscordGuild(slashCommand.GuildId)),
                 channel: ConvertDiscordChannelToChatChannel(slashCommand.Channel),
