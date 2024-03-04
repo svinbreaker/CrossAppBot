@@ -202,7 +202,7 @@ namespace СrossAppBot
         {
             string conversationName = null;
             ConversationChatSettings settings = conversation.ChatSettings;
-            if (settings != null) 
+            if (settings != null)
             {
                 conversationName = settings.Title;
             }
@@ -213,7 +213,7 @@ namespace СrossAppBot
         {
             ChatGuild guild = null;
             bool isPrivate = conversation.Peer.Id < 2000000000;
-            if (!isPrivate) 
+            if (!isPrivate)
             {
                 guild = ConvertVkGuildToChatGuild(conversation);
             }
@@ -241,9 +241,7 @@ namespace СrossAppBot
                 }
             }
 
-            return new ChatUser(vkUserId.ToString(), vkUser.FirstName, this, conversation,
-                isOwner: isOwner,
-                isAdmin: isAdmin);
+            return new ChatUser(vkUserId.ToString(), vkUser.FirstName, this, conversation);
         }
 
         private ChatMessage ConvertVkMessageToChatMessage(Message message)
@@ -341,22 +339,22 @@ namespace СrossAppBot
                 case ".ts":
                 case ".m2ts":
                 case ".mts":
-                    /*var video = await _api.Video.SaveAsync(new VideoSaveParams
-                    {
-                        Name = Path.GetFileNameWithoutExtension(filePath),
-                        Description = null,
-                        Wallpost = false, 
-                        GroupId = null,
-                        IsPrivate = true,
-                    });
-                    return video;*/
+                /*var video = await _api.Video.SaveAsync(new VideoSaveParams
+                {
+                    Name = Path.GetFileNameWithoutExtension(filePath),
+                    Description = null,
+                    Wallpost = false, 
+                    GroupId = null,
+                    IsPrivate = true,
+                });
+                return video;*/
 
                 default:
                     throw new ArgumentException("File format is not supported: " + fileExtension);
             }
         }
 
- 
+
         private async Task<string> UploadFile(string serverUrl, string filePath, string fileExtension)
         {
             // Получение массива байтов из файла
@@ -383,6 +381,31 @@ namespace СrossAppBot
         public Task AddReaction(ChatMessage message, string reaction)
         {
             throw new NotImplementedException();
+        }
+
+        public override Task<List<UserRight>> GetUserRights(ChatUser user, ChatGuild guild)
+        {
+            Conversation vkChannel = GetConversationById(guild.Id);
+            User vkUser = GetVkUserById(long.Parse(user.Id));
+
+            List<UserRight> rights = new List<UserRight>();
+
+            ConversationChatSettings chatSettings = vkChannel.ChatSettings;
+            if (chatSettings == null) return null;
+
+
+            if (chatSettings.AdminIds != null & chatSettings.AdminIds.Count > 0)
+            {
+                if (chatSettings.AdminIds.Contains(vkUser.Id))
+                {
+                    rights.Add(UserRight.Administrator);
+                }
+            }
+            if (chatSettings.OwnerId == vkUser.Id)
+            {
+                rights.Add(UserRight.Administrator);
+            }
+            return Task.FromResult(rights);
         }
     }
 }

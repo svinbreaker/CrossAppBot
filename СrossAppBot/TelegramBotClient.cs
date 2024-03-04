@@ -414,10 +414,7 @@ namespace СrossAppBot
 
         private ChatUser ConvertTelegramUserToChatUser(User telegramUser, Chat telegramChat)
         {
-            return new ChatUser(telegramUser.Id.ToString(), telegramUser.Username, this, telegramUser,
-            isOwner: bot.GetChatMemberAsync(telegramChat.Id, telegramUser.Id).Result.Status == ChatMemberStatus.Creator,
-            isAdmin: (bot.GetChatMemberAsync(telegramChat.Id, telegramUser.Id).Result.Status == ChatMemberStatus.Administrator)
-            );
+            return new ChatUser(telegramUser.Id.ToString(), telegramUser.Username, this, telegramUser);
         }
 
         private async Task<ChatMessage> ConvertTelegramMessageToChatMessage(Message message)
@@ -493,6 +490,23 @@ namespace СrossAppBot
             {
                 return $"https://api.telegram.org/filePath/bot{this.Token}/{file.FilePath}";
             }
+        }
+
+        public override async Task<List<UserRight>> GetUserRights(ChatUser user, ChatGuild guild)
+        {
+            ChatMember telegramUser = await bot.GetChatMemberAsync(long.Parse(guild.Id), long.Parse(user.Id));
+            if (telegramUser == null) return null;
+
+            List<UserRight> rights = new List<UserRight>();
+            if (telegramUser.Status == ChatMemberStatus.Creator | telegramUser.Status == ChatMemberStatus.Administrator)
+            {
+                rights.Add(UserRight.Administrator);
+            }
+            else if (telegramUser.Status == ChatMemberStatus.Creator)
+            {
+                rights.Add(UserRight.Owner);
+            }
+            return rights;
         }
 
         private class TelegramUsers

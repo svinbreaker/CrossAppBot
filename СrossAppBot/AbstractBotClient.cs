@@ -54,6 +54,8 @@ namespace СrossAppBot
         public abstract Task<ChatChannel> GetChannelAsync(string channeId);
         public abstract Task<ChatGuild> GetGuildAsync(string guildId);
 
+        public abstract Task<List<UserRight>> GetUserRights(ChatUser user, ChatGuild guild);
+
         public override string ToString()
         {
             return $"Name: {Name}, Token: {Token}, Id: {Id}";

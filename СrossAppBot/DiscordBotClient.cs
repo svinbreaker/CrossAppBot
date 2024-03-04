@@ -266,13 +266,13 @@ namespace СrossAppBot
         private ChatUser ConvertDiscordUserToChatUser(SocketGuildUser discordUser)
         {
             ulong discordUserId = discordUser.Id;
-            return new ChatUser(discordUserId.ToString(), discordUser.Username, this, discordUser, discordUser.GuildPermissions.Administrator, discordUser.Guild.OwnerId == discordUserId);
+            return new ChatUser(discordUserId.ToString(), discordUser.Username, this, discordUser);
         }
 
         private ChatUser ConvertDiscordUserToChatUser(SocketUser discordUser)
         {
             ulong discordUserId = discordUser.Id;
-            return new ChatUser(discordUserId.ToString(), discordUser.Username, this, discordUser, false, false);
+            return new ChatUser(discordUserId.ToString(), discordUser.Username, this, discordUser);
         }
 
         private ChatGuild ConvertDiscordGuildToChatGuild(SocketGuild discordGuild)
@@ -512,11 +512,23 @@ namespace СrossAppBot
 
         private async Task SlashCommandHandler(SocketSlashCommand slashCommand)
         {
-            CommandManager commandManager = null;
-            AbstractCommand command = commandManager.CreateCommandInstance(slashCommand.CommandName, slashCommand.Data.Options.ToArray());
+            object[] arguments = Array.Empty<object>();
+            if (slashCommand.Data.Options.Count > 0) 
+            {
+                arguments = slashCommand.Data.Options.ToArray();
+            }
 
+            AbstractCommand command = CommandManager.CreateCommandInstance(slashCommand.CommandName, arguments);
+
+            var discordUser = slashCommand.User;
+            var discordGuildId = slashCommand.GuildId;
+            if (discordGuildId != null)
+            {
+                var discordGuild = _client.GetGuild(discordGuildId.Value);
+                discordUser = discordGuild.GetUser(slashCommand.User.Id);
+            }
             CommandContext context = new CommandContext(
-                sender: ConvertDiscordUserToChatUser(slashCommand.User),
+                sender: ConvertDiscordUserToChatUser((SocketGuildUser) discordUser),
                 guild: ConvertDiscordGuildToChatGuild(GetDiscordGuild(slashCommand.GuildId)),
                 channel: ConvertDiscordChannelToChatChannel(slashCommand.Channel),
                 client: this,
@@ -524,6 +536,26 @@ namespace СrossAppBot
             );
 
             await ExecuteSlashCommand(command, context);
+        }
+
+        public override Task<List<UserRight>> GetUserRights(ChatUser user, ChatGuild guild)
+        {
+            SocketGuild discordGuild = GetDiscordGuild(guild);
+            SocketGuildUser discordUser = GetDiscordUser(user, guild);
+           
+            if (discordUser == null) return null;
+
+            List<UserRight> rights = new List<UserRight>();
+            if (discordUser.GuildPermissions.Administrator) 
+            {
+                rights.Add(UserRight.Administrator);
+            }
+            if (discordUser.Id == (discordGuild.OwnerId)) 
+            {
+                rights.Add(UserRight.Owner);
+            }
+
+            return Task.FromResult(rights);
         }
     }
 }
