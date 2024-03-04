@@ -10,9 +10,9 @@ namespace СrossAppBot
     public interface ISlashable
     {
         public abstract Task RegisterSlashCommand(AbstractCommand command);
-        public async Task RegisterSlashCommands(List<AbstractCommand> commandsd) 
+        public virtual async Task RegisterSlashCommands(List<AbstractCommand> commands) 
         {
-            foreach(AbstractCommand command in commandsd) 
+            foreach(AbstractCommand command in commands) 
             {
                 await this.RegisterSlashCommand(command);
             }

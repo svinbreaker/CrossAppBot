@@ -15,12 +15,13 @@ using Discord.WebSocket;
 using СrossAppBot.Entities.Files;
 using СrossAppBot.Entities;
 using СrossAppBot.Events;
+using СrossAppBot.Commands;
 
 
 
 namespace СrossAppBot
 {
-    public class TelegramBotClient : AbstractBotClient
+    public class TelegramBotClient : AbstractBotClient, ISlashable
     {
         private Telegram.Bot.TelegramBotClient bot;
         private TelegramUsers telegramUsers;
@@ -79,6 +80,7 @@ namespace СrossAppBot
                 cancellationToken: cancellationToken
             );
             });
+            await Test();
 
             await EventManager.CallEvent(new BotConnectedEvent(this));
 
@@ -118,7 +120,7 @@ namespace СrossAppBot
 
                     var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                     streams.Add(fileStream);
-                    
+
                     byte[] fileBytes = new byte[fileStream.Length];
                     await fileStream.ReadAsync(fileBytes, 0, (int)fileStream.Length);
                     var memoryStream = new MemoryStream(fileBytes);
@@ -271,9 +273,18 @@ namespace СrossAppBot
                 switch (update.Type)
                 {
                     case UpdateType.Message:
-                        Message originalMessage = update.Message;
-                        ChatMessage message = await ConvertTelegramMessageToChatMessage(originalMessage);
-                        await EventManager.CallEvent(new MessageReceivedEvent(message));
+                        Message telegramMessage = update.Message;
+                        ChatMessage message = await ConvertTelegramMessageToChatMessage(telegramMessage);
+
+                        AbstractCommand command = await GetSlashCommand(telegramMessage);
+                        if (command != null)
+                        {
+                            await command.Execute(CommandContext.FromMessage(message));
+                        }
+                        else
+                        {
+                            await EventManager.CallEvent(new MessageReceivedEvent(message));
+                        }
                         break;
                 }
 
@@ -405,7 +416,7 @@ namespace СrossAppBot
         {
             ChatGuild guild = null;
             bool isPrivate = telegramChat.Type == ChatType.Private;
-            if (!isPrivate) 
+            if (!isPrivate)
             {
                 guild = ConvertTelegramGuildToChatGuild(telegramChat);
             }
@@ -507,6 +518,88 @@ namespace СrossAppBot
                 rights.Add(UserRight.Owner);
             }
             return rights;
+        }
+
+        public async Task<AbstractCommand> GetSlashCommand(Message telegramMessage)
+        {
+            string text = telegramMessage.Text;
+            if (text.StartsWith("/"))
+            {
+                string commandName = "";
+                var botMember = await bot.GetChatMemberAsync(telegramMessage.Chat.Id, long.Parse(this.Id));
+                string botName = botMember.User.Username;
+                if (telegramMessage.Chat.Type == ChatType.Private)
+                {
+                    commandName = text.Substring(1);
+                }
+                else if (text.EndsWith("@" + botName))
+                {
+                    commandName = text.Substring(1).Replace("@" + botName, "");
+                }
+
+                if (CommandManager.CommandExist(commandName))
+                {
+                    return CommandManager.CreateCommandInstance(commandName, null);
+                }
+            }
+            return null;
+        }
+
+
+        public async Task RegisterSlashCommand(AbstractCommand command)
+        {
+            RegisterSlashCommands(new List<AbstractCommand>() { command });
+        }
+
+        List<AbstractCommand> slashCommandsToSet = new List<AbstractCommand>();
+        public async Task RegisterSlashCommands(List<AbstractCommand> commands)
+        {
+
+            slashCommandsToSet = commands;
+        }
+
+        public async Task SetSlashCommands(List<BotCommand> telegramCommands)
+        {
+            try
+            {
+                await bot.SetMyCommandsAsync(telegramCommands);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + "\n" + e.ToString());
+            }
+        }
+
+        public async Task Test()
+        {
+            List<AbstractCommand> commands = slashCommandsToSet;
+            BotCommand[] telegramCommands = await bot.GetMyCommandsAsync();
+            List<BotCommand> telegramCommandsToSet;
+            if (telegramCommands == null | telegramCommands.Length == 0)
+            {
+                telegramCommandsToSet = telegramCommands.ToList();
+            }
+            else
+            {
+                telegramCommandsToSet = new List<BotCommand>();
+            }
+
+            for (int i = 0; i < commands.Count; i++)
+            {
+                AbstractCommand command = commands[i];
+                if (command.GetArguments().Count > 0)
+                {
+                    throw new ArgumentException("Telegram slash commands cannot have arguments");
+                }
+                BotCommand telegramCommand = new BotCommand() { Command = command.Name, Description = command.Description };
+                telegramCommandsToSet.Add(telegramCommand);
+            }
+            await SetSlashCommands(telegramCommandsToSet);
+        }
+
+        public Task ExecuteSlashCommand(AbstractCommand command, CommandContext context)
+        {
+            throw new NotImplementedException();
         }
 
         private class TelegramUsers

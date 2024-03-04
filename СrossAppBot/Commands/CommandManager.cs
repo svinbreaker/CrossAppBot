@@ -24,6 +24,11 @@ namespace СrossAppBot.Commands
             return command;
         }
 
+        public bool CommandExist(string commandName) 
+        {
+            return Commands.Where(c => c.Name == commandName).FirstOrDefault() != null; 
+        }
+
         private void ParseCommandArguments(AbstractCommand command, object[] arguments)
         {
             List<PropertyInfo> properties = command.GetType().GetProperties().Where(property => property.IsDefined(typeof(CommandArgumentAttribute), false)).ToList();
