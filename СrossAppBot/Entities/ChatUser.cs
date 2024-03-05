@@ -21,13 +21,27 @@ namespace СrossAppBot.Entities
             OriginalObject = originalObject;
         }
 
-        public List<UserRight> GetRights(ChatGuild guild) 
+        public List<UserRight> GetRights(ChatGuild guild)
         {
-            return Client.GetUserRights(this, guild).Result;
+            if (guild == null)
+            {
+                return null;
+            }
+            else
+            {
+                return Client.GetUserRights(this, guild).Result;
+            }
         }
         public async Task<List<UserRight>> GetRightsAsync(ChatGuild guild)
         {
-            return await Client.GetUserRights(this, guild);
+            if (guild == null)
+            {
+                return null;
+            }
+            else
+            {
+                return await Client.GetUserRights(this, guild);
+            }
         }
     }
 }
