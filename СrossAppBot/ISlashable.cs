@@ -17,6 +17,6 @@ namespace СrossAppBot
                 await this.RegisterSlashCommand(command);
             }
         }
-        public abstract Task ExecuteSlashCommand(AbstractCommand command, CommandContext context);
+        public abstract Task ExecuteSlashCommand(AbstractCommand command);
     }
 }

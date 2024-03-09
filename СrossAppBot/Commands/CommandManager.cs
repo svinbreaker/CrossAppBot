@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -12,21 +13,23 @@ namespace СrossAppBot.Commands
         public List<AbstractCommand> Commands = new List<AbstractCommand>();
         private Dictionary<Type, IArgumentParser> parsers = new Dictionary<Type, IArgumentParser>();
 
-        public AbstractCommand CreateCommandInstance(string commandName, object[] arguments)
+        public AbstractCommand CreateExecutableCommandInstance(string commandName, object[] arguments, CommandContext context)
         {
             AbstractCommand command = GetCommandByName(commandName);
 
+            command.Context = context;
             if (arguments != null)
             {
                 ParseCommandArguments(command, arguments);
             }
+            command.Conditions();
 
             return command;
         }
 
         public bool CommandExist(string commandName) 
         {
-            return Commands.Where(c => c.Name == commandName).FirstOrDefault() != null; 
+            return Commands.Where(c => c.Name == commandName).FirstOrDefault() != null;
         }
 
         private void ParseCommandArguments(AbstractCommand command, object[] arguments)
@@ -54,7 +57,7 @@ namespace СrossAppBot.Commands
             AbstractCommand command = Commands.Where(c => c.Name == commandName).FirstOrDefault();
             if (command == null)
             {
-                throw new KeyNotFoundException($"Command '{commandName}' not exists");
+                return null;
             }
 
             return (AbstractCommand)Activator.CreateInstance(command.GetType());
@@ -62,7 +65,7 @@ namespace СrossAppBot.Commands
         }
 
         public void AddCommand(AbstractCommand command)
-        {
+        {           
             Commands.Add(command);
         }
 

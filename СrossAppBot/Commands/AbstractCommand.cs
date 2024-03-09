@@ -1,88 +1,68 @@
-﻿using System;
+﻿using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using СrossAppBot.Commands.Parameters;
+using СrossAppBot.Entities;
 
 namespace СrossAppBot.Commands
 {
     public abstract class AbstractCommand
     {
+        public CommandContext Context { get; set; }
+
         public string Name { get; set; }
         public string Description { get; set; }
-        //private List<PropertyInfo> properties = new List<PropertyInfo>();
-        public List<CommandCondition> Conditions { get; set; }
+        private Dictionary<Func<Task<bool>>, Func<Task>> CommandConditions { get; set; } = new Dictionary<Func<Task<bool>>, Func<Task>>();
 
-        public AbstractCommand(string name, string description, List<CommandCondition> conditions = null)
+        public AbstractCommand(string name, string description)
         {
             Name = name;
             Description = description;
-            Conditions = conditions;
-            //properties = this.GetType().GetProperties().Where(
-            //   prop => Attribute.IsDefined(prop, typeof(CommandParameterAttribute))).ToList();
+        }
+
+        public virtual void Conditions()
+        {
+            
+        }
+
+
+        public void Condition(Func<Task<bool>> condition, Func<Task> action)
+        {
+            CommandConditions.Add(condition, action);
+        }
+
+        public void Condition(AbstractCommandCondition commandCondition)
+        {
+            CommandConditions.Add(commandCondition.Condition, commandCondition.Action);
+        }
+
+
+        public async Task<bool> Execute()
+        {
+            foreach (KeyValuePair<Func<Task<bool>>, Func<Task>> condition in CommandConditions)
+            {
+                if (await condition.Key() == false)
+                {
+                    await condition.Value();
+                    return false;
+                }
+                else
+                {
+                    await Executee();
+                }
+            }
+            return true;
         }
 
 
 
-
-        /*public async Task TryExecute(string command, CommandContext context = null) 
-        {
-            string[] stringParameters = command.Split(' ');
-            List<object> parameters = new List<object>();
-
-            for (int i = 0; i < properties.Count; i++) 
-            {
-                PropertyInfo property = properties[i];
-                Type type = property.GetType();
-
-                string stringParameter = stringParameters[i];
-
-                if (type == typeof(string)) 
-                {
-                    parameters.Add(stringParameter);
-                }
-                else if (type == typeof(int)) 
-                {
-                    parameters.Add(int.Parse(stringParameter));
-                }
-                else if (type == typeof(float))
-                {
-                    parameters.Add(float.Parse(stringParameter));
-                }
-                else if (type == typeof(double))
-                {
-                    parameters.Add(double.Parse(stringParameter));
-                }
-                else if (type == typeof(ChatUser))
-                {
-                    parameters.Add(context.Client.GetUserByMention(context.Message, stringParameter));                    
-                }
-                else 
-                {
-                    parameters.Add(stringParameters);
-                }
-            }
-
-            await TryExecute(parameters, context);
-        }*/
-
-        public async Task TryExecute(CommandContext context)
-        {
-            foreach (CommandCondition condition in Conditions)
-            {
-                bool result = await condition.ExecuteIfTrueAsync(context);
-                if (result == true)
-                {
-                    break;
-                }
-            }
-
-            await Execute(context);
-        }
-        public abstract Task Execute(CommandContext context);
+        protected abstract Task Executee();
 
         public List<CommandArgument> GetArguments()
         {
@@ -92,7 +72,7 @@ namespace СrossAppBot.Commands
             {
                 foreach (PropertyInfo property in properties)
                 {
-                    arguments.Add(new CommandArgument(property.PropertyType, GetArgumentAttributes(property)));
+                    arguments.Add(new CommandArgument(property.PropertyType, property.GetValue(this), GetArgumentAttributes(property)));
                 }
             }
             return arguments;
@@ -109,5 +89,21 @@ namespace СrossAppBot.Commands
             CommandArgumentAttribute attributes = (CommandArgumentAttribute)Attribute.GetCustomAttribute(argumentProperties, typeof(CommandArgumentAttribute));
             return attributes;
         }
+
+        /* private CommandCondition CreateCommandConditionInstance(Type commandConditionType, CommandContext context, object[] arguments)
+         {
+             CommandCondition condition = (CommandCondition)Activator.CreateInstance(commandConditionType);
+
+             condition.Context = context;
+             for (int i = 0; i < arguments.Length; i++)
+             {
+                 object argument = arguments[i];
+                 string name = argument.GetType().GetProperties().Where(prop => prop.GetCustomAttribute<CommandConditionAttribute>().Name != null).FirstOrDefault()?.Name;
+                 PropertyInfo property = commandConditionType.GetProperty(name);
+                 property.SetValue(property, argument);
+             }
+
+             return condition;
+         }*/
     }
 }

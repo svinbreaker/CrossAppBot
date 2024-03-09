@@ -10,12 +10,22 @@ namespace СrossAppBot.Commands
     public class CommandArgument
     {
         public Type Type { get; set; }
+        public object Value { get; set; }
         public CommandArgumentAttribute Attributes { get; set; }
 
-        public CommandArgument(Type type, CommandArgumentAttribute attributes) 
+        public CommandArgument(Type type, object value, CommandArgumentAttribute attributes) 
         {
             Type = type;
+            Value = value;
             Attributes = attributes;
+        }
+
+        public object Unpack() 
+        {
+            object obj = Activator.CreateInstance(Type);
+            obj = Value;
+
+            return obj;
         }
     }
 }

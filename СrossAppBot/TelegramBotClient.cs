@@ -80,7 +80,6 @@ namespace СrossAppBot
                 cancellationToken: cancellationToken
             );
             });
-            await Test();
 
             await EventManager.CallEvent(new BotConnectedEvent(this));
 
@@ -279,7 +278,7 @@ namespace СrossAppBot
                         AbstractCommand command = await GetSlashCommand(telegramMessage);
                         if (command != null)
                         {
-                            await command.Execute(CommandContext.FromMessage(message));
+                            await command.Execute();
                         }
                         else
                         {
@@ -539,7 +538,8 @@ namespace СrossAppBot
 
                 if (CommandManager.CommandExist(commandName))
                 {
-                    return CommandManager.CreateCommandInstance(commandName, null);
+                    ChatMessage message = await ConvertTelegramMessageToChatMessage(telegramMessage);
+                    return CommandManager.CreateExecutableCommandInstance(commandName, null, CommandContext.FromMessage(message));
                 }
             }
             return null;
@@ -548,31 +548,11 @@ namespace СrossAppBot
 
         public async Task RegisterSlashCommand(AbstractCommand command)
         {
-            RegisterSlashCommands(new List<AbstractCommand>() { command });
+            await RegisterSlashCommands(new List<AbstractCommand>() { command });
         }
 
-        List<AbstractCommand> slashCommandsToSet = new List<AbstractCommand>();
         public async Task RegisterSlashCommands(List<AbstractCommand> commands)
         {
-
-            slashCommandsToSet = commands;
-        }
-
-        public async Task SetSlashCommands(List<BotCommand> telegramCommands)
-        {
-            try
-            {
-                await bot.SetMyCommandsAsync(telegramCommands);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message + "\n" + e.ToString());
-            }
-        }
-
-        public async Task Test()
-        {
-            List<AbstractCommand> commands = slashCommandsToSet;
             BotCommand[] telegramCommands = await bot.GetMyCommandsAsync();
             List<BotCommand> telegramCommandsToSet;
             if (telegramCommands == null | telegramCommands.Length == 0)
@@ -597,7 +577,20 @@ namespace СrossAppBot
             await SetSlashCommands(telegramCommandsToSet);
         }
 
-        public Task ExecuteSlashCommand(AbstractCommand command, CommandContext context)
+
+        public async Task SetSlashCommands(List<BotCommand> telegramCommands)
+        {
+            try
+            {
+                await bot.SetMyCommandsAsync(telegramCommands);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + "\n" + e.ToString());
+            }
+        }
+
+        public Task ExecuteSlashCommand(AbstractCommand command)
         {
             throw new NotImplementedException();
         }

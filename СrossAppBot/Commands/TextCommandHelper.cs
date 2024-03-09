@@ -64,7 +64,7 @@ namespace СrossAppBot.Commands
             object[] arguments = new object[properties.Count];
             arguments = ParseArguments(commandArgs, command, context);
 
-            return CommandManager.CreateCommandInstance(commandName, arguments);
+            return CommandManager.CreateExecutableCommandInstance(commandName, arguments, context);
         }
 
         private object[] ParseArguments(string[] commandArgs, AbstractCommand command, CommandContext context)
