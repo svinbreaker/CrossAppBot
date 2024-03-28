@@ -22,7 +22,7 @@ namespace СrossAppBot.Entities
 
         public AbstractBotClient Client { get; set; }
 
-        public List<ChatMessageFile> Files {get; set; }
+        public List<ChatMessageFile> Files { get; set; }
         public object OriginalObject { get; set; }
 
         public ChatMessage(string id, ChatUser author, ChatGuild guild, AbstractBotClient client, ChatChannel channel, object originalObject, string text = null, ChatMessage messageReference = null, List<ChatMessageFile> files = null)
@@ -36,6 +36,24 @@ namespace СrossAppBot.Entities
             Client = client;
             Files = files;
             OriginalObject = originalObject;
+        }
+
+        public List<string> GetMentions()
+        {
+            List<string> mentions = new List<string>();
+
+            if (!string.IsNullOrEmpty(Text))
+            {
+                foreach (string word in Text.Split(" "))
+                {
+                    if (Client.TextIsMention(this, word))
+                    {
+                        mentions.Add(word);
+                    }
+                }
+            }
+       
+            return mentions;
         }
 
         public override string ToString()

@@ -156,7 +156,7 @@ namespace СrossAppBot
         public override bool TextIsMention(ChatMessage message, string mention)
         {
             bool isMention = false;
-            if (mention.StartsWith("<@") & mention[mention.Length - 1].Equals(">"))
+            if (mention.StartsWith("<@") && mention.EndsWith(">"))
             {
                 isMention = GetUserByMention(message, mention) != null;
             }
