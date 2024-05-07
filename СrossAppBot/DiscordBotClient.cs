@@ -37,6 +37,32 @@ namespace СrossAppBot
 
         public override async Task SendMessageAsync(string channelId, string text = null, string messageReferenceId = null, List<string> files = null)
         {
+            string fullText = text;
+
+            List<string> messages = new List<string>();
+
+            if (fullText.Length > 2000)
+            {
+                while (fullText.Length > 2000)
+                {
+                    int splitIndex = fullText.LastIndexOf(' ', 1999);
+
+                    if (splitIndex == -1)
+                        splitIndex = 1999;
+
+                    string messagePart = fullText.Substring(0, splitIndex + 1);
+                    messages.Add(messagePart);
+                    fullText = fullText.Remove(0, splitIndex + 1).Trim();
+                }
+
+                if (!string.IsNullOrEmpty(fullText))
+                    messages.Add(fullText);
+            }
+            else
+            {
+                messages.Add(fullText);
+            }
+
             try
             {
                 ulong parsedChannelId = ulong.Parse(channelId);
@@ -51,6 +77,16 @@ namespace СrossAppBot
                 {
                     messageReference = new MessageReference(ulong.Parse(messageReferenceId));
                 }
+
+                if (messages.Count > 1)
+                {
+                    for (int i = 0; i <= messages.Count; i++)
+                    {
+                        await channel.SendMessageAsync(text: messages[i], messageReference: messageReference);
+                        messageReference = null;
+                    }
+                }
+                
                 if (files != null)
                 {
                     List<FileAttachment> attachments = new List<FileAttachment>();
@@ -61,7 +97,7 @@ namespace СrossAppBot
                         attachments.Add(new FileAttachment(stream, file));
                     }
 
-                    await channel.SendFilesAsync(attachments: attachments, text: text, messageReference: messageReference);
+                    await channel.SendFilesAsync(attachments: attachments, text: messages[-1], messageReference: messageReference);
 
                     await Task.Run(() =>
                     {
@@ -430,7 +466,7 @@ namespace СrossAppBot
             return url.Contains('.') ? url.Substring(url.LastIndexOf('.')) : "";
         }
 
-        public async Task RegisterSlashCommand(AbstractCommand command) 
+        public async Task RegisterSlashCommand(AbstractCommand command)
         {
             SlashCommandBuilder slashCommand = new SlashCommandBuilder()
                                                     .WithName(command.Name)
@@ -500,7 +536,7 @@ namespace СrossAppBot
         private async Task SlashCommandHandler(SocketSlashCommand slashCommand)
         {
             object[] arguments = Array.Empty<object>();
-            if (slashCommand.Data.Options.Count > 0) 
+            if (slashCommand.Data.Options.Count > 0)
             {
                 arguments = slashCommand.Data.Options.ToArray();
             }
@@ -535,7 +571,7 @@ namespace СrossAppBot
             );
 
             AbstractCommand command = CommandManager.CreateExecutableCommandInstance(slashCommand.CommandName, arguments, context);
-                    
+
             await ExecuteSlashCommand(command);
         }
 
@@ -543,15 +579,15 @@ namespace СrossAppBot
         {
             SocketGuild discordGuild = GetDiscordGuild(guild);
             SocketGuildUser discordUser = GetDiscordUser(user, guild);
-           
+
             if (discordUser == null) return null;
 
             List<UserRight> rights = new List<UserRight>();
-            if (discordUser.GuildPermissions.Administrator) 
+            if (discordUser.GuildPermissions.Administrator)
             {
                 rights.Add(UserRight.Administrator);
             }
-            if (discordUser.Id == (discordGuild.OwnerId)) 
+            if (discordUser.Id == (discordGuild.OwnerId))
             {
                 rights.Add(UserRight.Owner);
             }

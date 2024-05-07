@@ -310,7 +310,14 @@ namespace СrossAppBot
 
         public override bool TextIsMention(ChatMessage message, string mention)
         {
-            throw new NotImplementedException();
+            if (message != null)
+            {
+                if (message.Text.StartsWith("@"))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public override async Task<ChatUser> GetUserAsync(string userId, ChatGuild guild)
