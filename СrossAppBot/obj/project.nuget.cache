@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "hsG/tkqOovhGmZ6FhtWlYnttTAax90ci4B0gaFceBKZVLveOd9KfvZIaDbMSqC/lOUqTXeecLHchfa6FJg3DmQ==",
+  "dgSpecHash": "qcput+M2uM5ba7Fkdls1YcP9622cLB2WFnt7ESlZtpm59nP9a9lPT/45XiFB9ZNIGKqkfhDhqxIIJdVIUKUyRA==",
   "success": true,
   "projectFilePath": "D:\\Docs\\VisualStudioProjects\\СrossAppBot\\СrossAppBot\\СrossAppBot.csproj",
   "expectedPackageFiles": [
@@ -16,7 +16,6 @@
     "C:\\Users\\Cracker\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\Cracker\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\Cracker\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
-    "C:\\Users\\Cracker\\.nuget\\packages\\sharptoken\\1.2.17\\sharptoken.1.2.17.nupkg.sha512",
     "C:\\Users\\Cracker\\.nuget\\packages\\system.collections.immutable\\5.0.0\\system.collections.immutable.5.0.0.nupkg.sha512",
     "C:\\Users\\Cracker\\.nuget\\packages\\system.interactive.async\\5.0.0\\system.interactive.async.5.0.0.nupkg.sha512",
     "C:\\Users\\Cracker\\.nuget\\packages\\system.linq.async\\5.0.0\\system.linq.async.5.0.0.nupkg.sha512",

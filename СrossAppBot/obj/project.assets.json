@@ -199,15 +199,6 @@
           }
         }
       },
-      "SharpToken/1.2.17": {
-        "type": "package",
-        "compile": {
-          "lib/net8.0/SharpToken.dll": {}
-        },
-        "runtime": {
-          "lib/net8.0/SharpToken.dll": {}
-        }
-      },
       "System.Collections.Immutable/5.0.0": {
         "type": "package",
         "compile": {
@@ -693,22 +684,6 @@
         "packageIcon.png"
       ]
     },
-    "SharpToken/1.2.17": {
-      "sha512": "ewVj4YWz+DnQ6/Vaalin6Jg03OHl41XmYBQp6MuXBnHIbMyv6KFb94I899xYsdynX9NZJtc6Crxya9w5Ko8LUg==",
-      "type": "package",
-      "path": "sharptoken/1.2.17",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE",
-        "README.md",
-        "lib/net6.0/SharpToken.dll",
-        "lib/net8.0/SharpToken.dll",
-        "lib/netstandard2.0/SharpToken.dll",
-        "sharptoken.1.2.17.nupkg.sha512",
-        "sharptoken.nuspec"
-      ]
-    },
     "System.Collections.Immutable/5.0.0": {
       "sha512": "FXkLXiK0sVVewcso0imKQoOxjoPAj42R8HtjjbSjVPAzwDfzoyoznWxgA3c38LDbN9SJux1xXoXYAhz98j7r2g==",
       "type": "package",
@@ -940,7 +915,6 @@
   "projectFileDependencyGroups": {
     "net8.0": [
       "Discord.Net >= 3.13.1",
-      "SharpToken >= 1.2.17",
       "Telegram.Bot >= 19.0.0",
       "VkNet >= 1.78.0"
     ]
@@ -987,10 +961,6 @@
           "Discord.Net": {
             "target": "Package",
             "version": "[3.13.1, )"
-          },
-          "SharpToken": {
-            "target": "Package",
-            "version": "[1.2.17, )"
           },
           "Telegram.Bot": {
             "target": "Package",
