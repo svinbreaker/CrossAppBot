@@ -616,8 +616,14 @@ namespace СrossAppBot
             public TelegramUsers(string filePath)
             {
                 this.filePath = filePath;
+                string directoryPath = Path.GetDirectoryName(filePath);
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
                 if (!System.IO.File.Exists(filePath))
                 {
+                    System.IO.File.Create(filePath).Close();
                     System.IO.File.WriteAllText(filePath, "{}");
                     /*using (FileStream fileStream = System.IO.File.Create(filePath))
                     {
