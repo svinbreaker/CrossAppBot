@@ -13,7 +13,7 @@ namespace СrossAppBot.Commands
     public class CommandContext
     {
         public ChatUser Sender { get; set; }
-        public ChatGuild Guild { get; set; }
+        public ChatGroup ChatGroup { get; set; }
         public ChatChannel Channel { get; set; }
         public AbstractBotClient Client { get; set; }
         public ChatMessage Message { get; set; }
@@ -22,13 +22,13 @@ namespace СrossAppBot.Commands
         public CommandContext(
             Func<string, bool, List<string>, Task> answerMethod,
         ChatUser sender = null,
-        ChatGuild guild = null,
+        ChatGroup guild = null,
         ChatChannel channel = null,
         AbstractBotClient client = null,
         ChatMessage message = null)
         {
             Sender = sender;
-            Guild = guild;
+            ChatGroup = guild;
             Channel = channel;
             Client = client;
             Message = message;
@@ -50,7 +50,7 @@ namespace СrossAppBot.Commands
             {
                 Channel = message.Channel,
                 Client = message.Client,
-                Guild = message.Guild,
+                ChatGroup = message.Guild,
                 Message = message,
                 Sender = message.Author,
 

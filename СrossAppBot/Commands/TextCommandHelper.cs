@@ -20,7 +20,7 @@ namespace СrossAppBot.Commands
             CommandManager = commandManager;
             Parsers = DefaultArgumentParsers.Get;
 
-            _splitters[0] = "";
+            _splitters[0] = " ";
             _splitters[1] = prefix;
 
             if (parsers != null)

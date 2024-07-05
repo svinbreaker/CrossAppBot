@@ -320,7 +320,7 @@ namespace СrossAppBot
             return false;
         }
 
-        public override async Task<ChatUser> GetUserAsync(string userId, ChatGuild guild)
+        public override async Task<ChatUser> GetUserAsync(string userId, ChatGroup guild)
         {
             ChatUser user = null;
             Chat telegramGuild = null;
@@ -394,9 +394,9 @@ namespace СrossAppBot
             return channel;
         }
 
-        public override async Task<ChatGuild> GetGuildAsync(string guildId)
+        public override async Task<ChatGroup> GetGuildAsync(string guildId)
         {
-            ChatGuild guild = null;
+            ChatGroup guild = null;
             Chat telegramGuild = null;
             long id = 0;
             long.TryParse(guildId, out id);
@@ -413,7 +413,7 @@ namespace СrossAppBot
             return guild;
         }
 
-        private ChatGuild ConvertTelegramGuildToChatGuild(Chat telegramChat)
+        private ChatGroup ConvertTelegramGuildToChatGuild(Chat telegramChat)
         {
             if (telegramChat.Type == ChatType.Private)
             {
@@ -421,13 +421,13 @@ namespace СrossAppBot
             }
             else
             {
-                return new ChatGuild(telegramChat.Id.ToString(), this, telegramChat.Title, telegramChat);
+                return new ChatGroup(telegramChat.Id.ToString(), this, telegramChat.Title, telegramChat);
             }
         }
 
         private ChatChannel ConvertTelegramChannelToChatChannel(Chat telegramChat)
         {
-            ChatGuild guild = null;
+            ChatGroup guild = null;
             bool isPrivate = telegramChat.Type == ChatType.Private;
             if (!isPrivate)
             {
@@ -516,7 +516,7 @@ namespace СrossAppBot
             }
         }
 
-        public override async Task<List<UserRight>> GetUserRights(ChatUser user, ChatGuild guild)
+        public override async Task<List<UserRight>> GetUserRights(ChatUser user, ChatGroup guild)
         {
             ChatMember telegramUser = await bot.GetChatMemberAsync(long.Parse(guild.Id), long.Parse(user.Id));
             if (telegramUser == null) return null;
@@ -536,7 +536,7 @@ namespace СrossAppBot
         public async Task<AbstractCommand> GetSlashCommand(Message telegramMessage)
         {
             string text = telegramMessage.Text;
-            if (text.StartsWith("/"))
+            if (text?.StartsWith("/") ?? false)
             {
                 string commandName = "";
                 var botMember = await bot.GetChatMemberAsync(telegramMessage.Chat.Id, long.Parse(this.Id));

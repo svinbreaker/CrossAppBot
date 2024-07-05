@@ -49,12 +49,12 @@ namespace СrossAppBot
         public abstract string Mention(string userId);
         public abstract bool TextIsMention(ChatMessage message, string mention);
 
-        public abstract Task<ChatUser> GetUserAsync(string userId, ChatGuild guild);
+        public abstract Task<ChatUser> GetUserAsync(string userId, ChatGroup guild);
         public abstract Task<ChatUser> GetUserByMention(ChatMessage message, string mention);
         public abstract Task<ChatChannel> GetChannelAsync(string channeId);
-        public abstract Task<ChatGuild> GetGuildAsync(string guildId);
+        public abstract Task<ChatGroup> GetGuildAsync(string guildId);
 
-        public abstract Task<List<UserRight>> GetUserRights(ChatUser user, ChatGuild guild);
+        public abstract Task<List<UserRight>> GetUserRights(ChatUser user, ChatGroup guild);
 
         public override string ToString()
         {

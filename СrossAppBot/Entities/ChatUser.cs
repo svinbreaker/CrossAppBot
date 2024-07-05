@@ -21,7 +21,7 @@ namespace СrossAppBot.Entities
             OriginalObject = originalObject;
         }
 
-        public List<UserRight> GetRights(ChatGuild guild)
+        public List<UserRight> GetRights(ChatGroup guild)
         {
             if (guild == null)
             {
@@ -32,7 +32,7 @@ namespace СrossAppBot.Entities
                 return Client.GetUserRights(this, guild).Result;
             }
         }
-        public async Task<List<UserRight>> GetRightsAsync(ChatGuild guild)
+        public async Task<List<UserRight>> GetRightsAsync(ChatGroup guild)
         {
             if (guild == null)
             {

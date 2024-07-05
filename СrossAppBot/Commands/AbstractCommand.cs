@@ -45,19 +45,25 @@ namespace СrossAppBot.Commands
 
         public async Task<bool> Execute()
         {
-            foreach (KeyValuePair<Func<Task<bool>>, Func<Task>> condition in CommandConditions)
+            if (CommandConditions.Count == 0)
             {
-                if (await condition.Key() == false)
-                {
-                    await condition.Value();
-                    return false;
-                }
-                else
-                {
-                    await Executee();
-                }
+                await Executee();
+                return true;
             }
-            return true;
+            else
+            {
+                foreach (KeyValuePair<Func<Task<bool>>, Func<Task>> condition in CommandConditions)
+                {
+                    if (await condition.Key() == false)
+                    {
+                        await condition.Value();
+                        return false;
+                    }
+   
+                }
+                await Executee();
+                return true;
+            }
         }
 
 

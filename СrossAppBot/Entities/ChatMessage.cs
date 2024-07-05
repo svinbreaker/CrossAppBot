@@ -16,7 +16,7 @@ namespace СrossAppBot.Entities
         public string Id { get; set; }
         public string Text { get; set; }
         public ChatUser Author { get; set; }
-        public ChatGuild Guild { get; set; }
+        public ChatGroup Guild { get; set; }
         public ChatChannel Channel { get; set; }
         public ChatMessage MessageReference { get; set; }
 
@@ -25,7 +25,7 @@ namespace СrossAppBot.Entities
         public List<ChatMessageFile> Files { get; set; }
         public object OriginalObject { get; set; }
 
-        public ChatMessage(string id, ChatUser author, ChatGuild guild, AbstractBotClient client, ChatChannel channel, object originalObject, string text = null, ChatMessage messageReference = null, List<ChatMessageFile> files = null)
+        public ChatMessage(string id, ChatUser author, ChatGroup guild, AbstractBotClient client, ChatChannel channel, object originalObject, string text = null, ChatMessage messageReference = null, List<ChatMessageFile> files = null)
         {
             Id = id;
             Text = text;

@@ -38,9 +38,13 @@ namespace СrossAppBot
         public override async Task SendMessageAsync(string channelId, string text = null, string messageReferenceId = null, List<string> files = null)
         {
             string fullText = text;
+            if (string.IsNullOrEmpty(fullText) && files.Count == 0) 
+            {
+                return;
+            }
 
             List<string> messages = new List<string>();
-
+            
             if (fullText.Length > 2000)
             {
                 while (fullText.Length > 2000)
@@ -154,7 +158,7 @@ namespace СrossAppBot
         private async Task MessageReceivedAsync(SocketMessage originalMessage)
         {
             SocketGuild discordGuild = null;
-            ChatGuild chatGuild = null;
+            ChatGroup chatGuild = null;
             if (originalMessage.Channel is SocketGuildChannel)
             {
                 discordGuild = (originalMessage.Channel as SocketGuildChannel).Guild;
@@ -199,7 +203,7 @@ namespace СrossAppBot
             return isMention;
         }
 
-        public override Task<ChatUser> GetUserAsync(string userId, ChatGuild guild)
+        public override Task<ChatUser> GetUserAsync(string userId, ChatGroup guild)
         {
             ChatUser user = null;
             SocketGuildUser discordUser = null;
@@ -254,9 +258,9 @@ namespace СrossAppBot
         }
 
         //is not async 
-        public override Task<ChatGuild> GetGuildAsync(string guildId)
+        public override Task<ChatGroup> GetGuildAsync(string guildId)
         {
-            ChatGuild guild = null;
+            ChatGroup guild = null;
             SocketGuild discordGuild = null;
             ulong id = 0;
             ulong.TryParse(guildId, out id);
@@ -305,9 +309,9 @@ namespace СrossAppBot
             return new ChatUser(discordUserId.ToString(), discordUser.Username, this, discordUser);
         }
 
-        private ChatGuild ConvertDiscordGuildToChatGuild(SocketGuild discordGuild)
+        private ChatGroup ConvertDiscordGuildToChatGuild(SocketGuild discordGuild)
         {
-            return new ChatGuild(discordGuild.Id.ToString(), this, discordGuild.Name, discordGuild)
+            return new ChatGroup(discordGuild.Id.ToString(), this, discordGuild.Name, discordGuild)
             {
                 Id = discordGuild.Id.ToString(),
                 Name = discordGuild.Name,
@@ -317,7 +321,7 @@ namespace СrossAppBot
 
         private ChatChannel ConvertDiscordChannelToChatChannel(ISocketMessageChannel discordChannel)
         {
-            ChatGuild guild = null;
+            ChatGroup guild = null;
             bool isPrivate = discordChannel is IDMChannel;
             if (!isPrivate)
             {
@@ -333,7 +337,7 @@ namespace СrossAppBot
         private async Task<ChatMessage> ConvertDiscordMessageToChatMessage(SocketMessage discordMessage)
         {
             SocketGuild discordGuild = null;
-            ChatGuild chatGuild = null;
+            ChatGroup chatGuild = null;
             ChatUser author = null;
             ISocketMessageChannel discordChannel = discordMessage.Channel;
             if (discordChannel is SocketGuildChannel publicDiscordChannel)
@@ -366,7 +370,7 @@ namespace СrossAppBot
         private async Task<ChatMessage> ConvertDiscordMessageReferenceToChatMessage(MessageReference discordMessageReference, ISocketMessageChannel discordChannel)
         {
             ChatUser author = null;
-            ChatGuild guild = null;
+            ChatGroup guild = null;
 
             var discordMessage = await discordChannel.GetMessageAsync(discordMessageReference.MessageId.Value);
             ulong authorId = discordMessage.Author.Id;
@@ -431,7 +435,7 @@ namespace СrossAppBot
         }
 
 
-        private SocketGuildUser GetDiscordUser(ChatUser user, ChatGuild guild)
+        private SocketGuildUser GetDiscordUser(ChatUser user, ChatGroup guild)
         {
             return GetDiscordGuild(guild).GetUser(ulong.Parse(user.Id));
         }
@@ -449,7 +453,7 @@ namespace СrossAppBot
             }
             return false;
         }
-        private SocketGuild GetDiscordGuild(ChatGuild guild)
+        private SocketGuild GetDiscordGuild(ChatGroup guild)
         {
             return _client.GetGuild(ulong.Parse(guild.Id));
         }
@@ -575,7 +579,7 @@ namespace СrossAppBot
             await ExecuteSlashCommand(command);
         }
 
-        public override Task<List<UserRight>> GetUserRights(ChatUser user, ChatGuild guild)
+        public override Task<List<UserRight>> GetUserRights(ChatUser user, ChatGroup guild)
         {
             SocketGuild discordGuild = GetDiscordGuild(guild);
             SocketGuildUser discordUser = GetDiscordUser(user, guild);

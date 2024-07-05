@@ -11,7 +11,8 @@ namespace СrossAppBot.Commands
     public class CommandManager
     {
         public List<AbstractCommand> Commands = new List<AbstractCommand>();
-        private Dictionary<Type, IArgumentParser> parsers = new Dictionary<Type, IArgumentParser>();
+        public TextCommandHelper TextCommandHelper { get; set; }
+
 
         public AbstractCommand CreateExecutableCommandInstance(string commandName, object[] arguments, CommandContext context)
         {
@@ -20,14 +21,21 @@ namespace СrossAppBot.Commands
             command.Context = context;
             if (arguments != null)
             {
-                ParseCommandArguments(command, arguments);
+                try
+                {
+                    ParseCommandArguments(command, arguments);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message + " " + e.ToString());
+                }
             }
             command.Conditions();
 
             return command;
         }
 
-        public bool CommandExist(string commandName) 
+        public bool CommandExist(string commandName)
         {
             return Commands.Where(c => c.Name == commandName).FirstOrDefault() != null;
         }
@@ -36,12 +44,16 @@ namespace СrossAppBot.Commands
         {
             List<PropertyInfo> properties = command.GetType().GetProperties().Where(property => property.IsDefined(typeof(CommandArgumentAttribute), false)).ToList();
 
-            for (int i = 1; i < Math.Min(arguments.Length, properties.Count + 1); i++)
+            for (int i = 1; i < Math.Min(arguments.Length, properties.Count) + 1; i++)
             {
                 PropertyInfo property = properties[i - 1];
                 object argument = arguments[i - 1];
-                Type propertyType = property.PropertyType;
+                if (argument == null)
+                {
+                    return;
+                }
 
+                Type propertyType = property.PropertyType;
                 if (!argument.GetType().Equals(propertyType))
                 {
                     throw new InvalidCastException("Exception occured while parsing arguments types");
@@ -65,7 +77,7 @@ namespace СrossAppBot.Commands
         }
 
         public void AddCommand(AbstractCommand command)
-        {           
+        {
             Commands.Add(command);
         }
 
@@ -88,6 +100,11 @@ namespace СrossAppBot.Commands
             {
                 RemoveCommand(command);
             }
+        }
+
+        public void SetTextCommandHelper(string prefix, List<IArgumentParser> parsers)
+        {
+            TextCommandHelper = new TextCommandHelper(prefix, this, parsers);
         }
     }
 }

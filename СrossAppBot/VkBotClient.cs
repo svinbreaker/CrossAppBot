@@ -168,7 +168,7 @@ namespace СrossAppBot
             return Regex.IsMatch(mention, pattern);
         }
 
-        public override async Task<ChatUser> GetUserAsync(string userId, ChatGuild guild)
+        public override async Task<ChatUser> GetUserAsync(string userId, ChatGroup guild)
         {
             User vkUser = GetVkUserById(long.Parse(userId));
             Conversation vkGuild = GetConversationById(guild.Id);
@@ -193,12 +193,12 @@ namespace СrossAppBot
             return ConvertVkChannelToChatChannel(GetConversationById(channelId));
         }
 
-        public override async Task<ChatGuild> GetGuildAsync(string guildId)
+        public override async Task<ChatGroup> GetGuildAsync(string guildId)
         {
             return ConvertVkGuildToChatGuild(GetConversationById(guildId));
         }
 
-        private ChatGuild ConvertVkGuildToChatGuild(Conversation conversation)
+        private ChatGroup ConvertVkGuildToChatGuild(Conversation conversation)
         {
             string conversationName = null;
             ConversationChatSettings settings = conversation.ChatSettings;
@@ -206,12 +206,12 @@ namespace СrossAppBot
             {
                 conversationName = settings.Title;
             }
-            return new ChatGuild(conversation.Peer.ToString(), this, conversationName, conversation);
+            return new ChatGroup(conversation.Peer.ToString(), this, conversationName, conversation);
         }
 
         private ChatChannel ConvertVkChannelToChatChannel(Conversation conversation)
         {
-            ChatGuild guild = null;
+            ChatGroup guild = null;
             bool isPrivate = conversation.Peer.Id < 2000000000;
             if (!isPrivate)
             {
@@ -264,7 +264,7 @@ namespace СrossAppBot
                 }
             }
 
-            ChatGuild guild = ConvertVkGuildToChatGuild(conversation);
+            ChatGroup guild = ConvertVkGuildToChatGuild(conversation);
             return new ChatMessage(id.ToString(), ConvertVkUserToChatUser(author, conversation), guild,
                 this, ConvertVkChannelToChatChannel(conversation), message,
                 text: message.Text, files: files);
@@ -383,7 +383,7 @@ namespace СrossAppBot
             throw new NotImplementedException();
         }
 
-        public override Task<List<UserRight>> GetUserRights(ChatUser user, ChatGuild guild)
+        public override Task<List<UserRight>> GetUserRights(ChatUser user, ChatGroup guild)
         {
             Conversation vkChannel = GetConversationById(guild.Id);
             User vkUser = GetVkUserById(long.Parse(user.Id));
