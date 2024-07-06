@@ -38,14 +38,14 @@ namespace СrossAppBot
         public override async Task SendMessageAsync(string channelId, string text = null, string messageReferenceId = null, List<string> files = null)
         {
             string fullText = text;
-            if (string.IsNullOrEmpty(fullText) && files.Count == 0) 
+            if (string.IsNullOrEmpty(fullText) && files == null) 
             {
-                return;
+                throw new NullReferenceException("Cannot send message without text and files.");
             }
 
             List<string> messages = new List<string>();
             
-            if (fullText.Length > 2000)
+            if (fullText?.Length > 2000)
             {
                 while (fullText.Length > 2000)
                 {
@@ -101,7 +101,7 @@ namespace СrossAppBot
                         attachments.Add(new FileAttachment(stream, file));
                     }
 
-                    await channel.SendFilesAsync(attachments: attachments, text: messages[-1], messageReference: messageReference);
+                    await channel.SendFilesAsync(attachments: attachments, text: messages.Any() ? messages[^1] : null, messageReference: messageReference);
 
                     await Task.Run(() =>
                     {
