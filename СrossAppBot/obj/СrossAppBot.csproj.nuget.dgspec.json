@@ -42,7 +42,7 @@
           "dependencies": {
             "Discord.Net": {
               "target": "Package",
-              "version": "[3.13.1, )"
+              "version": "[3.15.2, )"
             },
             "Telegram.Bot": {
               "target": "Package",

@@ -40,7 +40,7 @@ namespace СrossAppBot.Commands
             }
 
             string[] commandArgs = input.Split(_splitters, StringSplitOptions.RemoveEmptyEntries);
-            return commandArgs.Length > 0;
+            return (commandArgs.Length > 0 & CommandManager.GetCommandByName(commandArgs[0]) != null);
         }
         public AbstractCommand CreateCommandInstance(string input, CommandContext context)
         {

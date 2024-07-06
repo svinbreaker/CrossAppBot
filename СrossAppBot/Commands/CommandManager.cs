@@ -54,11 +54,12 @@ namespace СrossAppBot.Commands
                 }
 
                 Type propertyType = property.PropertyType;
+                propertyType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
                 if (!argument.GetType().Equals(propertyType))
                 {
                     throw new InvalidCastException("Exception occured while parsing arguments types");
                 }
-
+                //tert
                 property.SetValue(command, argument);
             }
         }
