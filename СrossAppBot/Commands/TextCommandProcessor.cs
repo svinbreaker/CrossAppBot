@@ -10,6 +10,7 @@ using static СrossAppBot.Commands.DefaultArgumentParsers;
 
 namespace СrossAppBot.Commands
 {
+    //deprecated
     public class TextCommandProcessor
     {
         private Dictionary<Type, IArgumentParser> parsers = new Dictionary<Type, IArgumentParser>();
@@ -47,6 +48,8 @@ namespace СrossAppBot.Commands
 
         public async Task ProcessCommand(string input, CommandContext context = null)
         {
+            if (input == null) return;
+
             string[] commandArgs = input.Split(_splitters, StringSplitOptions.RemoveEmptyEntries);
 
             if (!input.StartsWith(Prefix) | (commandArgs.Length < 1)) 
@@ -63,7 +66,7 @@ namespace СrossAppBot.Commands
             }
 
             await ParseArguments(commandArgs, command, context);
-            await command.Execute(context);
+            await command.Execute(); 
         }
 
         public void AddCommand(AbstractCommand command) 
@@ -94,42 +97,20 @@ namespace СrossAppBot.Commands
  
         private async Task<AbstractCommand> GetCommandInstance(string commandName)
         {
-            /*Type commandType = Assembly.GetExecutingAssembly().GetTypes()
-                .FirstOrDefault(t => typeof(AbstractCommand).IsAssignableFrom(t) && !t.IsAbstract && t.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase));
-
-            return commandType == null ? null : (AbstractCommand)Activator.CreateInstance(commandType);*/
-
-            //
-
-            /*foreach(KeyValuePair<string, Type> command in commands) 
-            {
-                Console.WriteLine(command.Key.ToString());
-            }
-            Type commandType = commands[commandName];
-            return await Task.FromResult(commandType == null ? null : (AbstractCommand)Activator.CreateInstance(commandType));*/
-
             AbstractCommand commandType = commands[commandName];
             return await Task.FromResult(commandType == null ? null : (AbstractCommand)Activator.CreateInstance(commandType.GetType()));
         }
 
-        private async Task ParseArguments(string[] commandArgs, AbstractCommand command, CommandContext context = null)
+        private async Task ParseArguments(string[] commandArgs, AbstractCommand command, CommandContext context)
         {
             List<PropertyInfo> properties = command.GetType().GetProperties().Where(property => property.IsDefined(typeof(CommandArgumentAttribute), false)).ToList();
 
-                 //add = 0      
-                 //user = 1
-
-                //2, 2
             for (int i = 1; i < Math.Min(commandArgs.Length, properties.Count + 1); i++)
             {
-                string argValue = commandArgs[i]; //1 - user
-                PropertyInfo property = properties[i - 1]; // 1 - 0 - ChatUser
+                string argValue = commandArgs[i]; 
+                PropertyInfo property = properties[i - 1]; 
 
-                /*// Проверяем, есть ли кастомный парсер для типа аргумента
-                Func<string, object> customParser = GetCustomParser(property.PropertyType);
-                object parsedValue = customParser != null ? customParser(argValue) : Convert.ChangeType(argValue, property.PropertyType);
-
-                property.SetValue(command, parsedValue);*/
+               
 
                 Type propertyType = property.PropertyType;
                 object parsedValue = null;
@@ -138,12 +119,7 @@ namespace СrossAppBot.Commands
                     IArgumentParser parser = parsers[propertyType];
                     parsedValue = parser.Parse(argValue, context);
                 }
-                /*else
-                {
-                    *//*// Если нет кастомного парсера, пытаемся использовать стандартный
-                    parsedValue = Convert.ChangeType(argValue, propertyType);*//*
-                    
-                }*/
+          
 
                 await Task.Run(() => property.SetValue(command, parsedValue));
             }

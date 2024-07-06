@@ -1,71 +1,115 @@
-﻿using System;
+﻿using Discord.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using СrossAppBot.Commands.Parameters;
+using СrossAppBot.Entities;
 
-namespace СrossAppBot.Commands 
+namespace СrossAppBot.Commands
 {
     public abstract class AbstractCommand
     {
+        public CommandContext Context { get; set; }
+
         public string Name { get; set; }
         public string Description { get; set; }
-        //private List<PropertyInfo> properties = new List<PropertyInfo>();
+        private Dictionary<Func<Task<bool>>, Func<Task>> CommandConditions { get; set; } = new Dictionary<Func<Task<bool>>, Func<Task>>();
 
-        public AbstractCommand(string name, string description) 
+        public AbstractCommand(string name, string description)
         {
             Name = name;
             Description = description;
-            //properties = this.GetType().GetProperties().Where(
-             //   prop => Attribute.IsDefined(prop, typeof(CommandParameterAttribute))).ToList();
+        }
+
+        public virtual void Conditions()
+        {
+            
         }
 
 
-        
-
-        /*public async Task Execute(string command, CommandContext context = null) 
+        public void Condition(Func<Task<bool>> condition, Func<Task> action)
         {
-            string[] stringParameters = command.Split(' ');
-            List<object> parameters = new List<object>();
+            CommandConditions.Add(condition, action);
+        }
 
-            for (int i = 0; i < properties.Count; i++) 
+        public void Condition(AbstractCommandCondition commandCondition)
+        {
+            CommandConditions.Add(commandCondition.Condition, commandCondition.Action);
+        }
+
+
+        public async Task<bool> Execute()
+        {
+            if (CommandConditions.Count == 0)
             {
-                PropertyInfo property = properties[i];
-                Type type = property.GetType();
+                await Executee();
+                return true;
+            }
+            else
+            {
+                foreach (KeyValuePair<Func<Task<bool>>, Func<Task>> condition in CommandConditions)
+                {
+                    if (await condition.Key() == false)
+                    {
+                        await condition.Value();
+                        return false;
+                    }
+   
+                }
+                await Executee();
+                return true;
+            }
+        }
 
-                string stringParameter = stringParameters[i];
 
-                if (type == typeof(string)) 
+
+        protected abstract Task Executee();
+
+        public List<CommandArgument> GetArguments()
+        {
+            List<CommandArgument> arguments = new List<CommandArgument>();
+            List<PropertyInfo> properties = GetArgumentsProperties();
+            if (properties != null & properties.Count > 0)
+            {
+                foreach (PropertyInfo property in properties)
                 {
-                    parameters.Add(stringParameter);
-                }
-                else if (type == typeof(int)) 
-                {
-                    parameters.Add(int.Parse(stringParameter));
-                }
-                else if (type == typeof(float))
-                {
-                    parameters.Add(float.Parse(stringParameter));
-                }
-                else if (type == typeof(double))
-                {
-                    parameters.Add(double.Parse(stringParameter));
-                }
-                else if (type == typeof(ChatUser))
-                {
-                    parameters.Add(context.Client.GetUserByMention(context.Message, stringParameter));                    
-                }
-                else 
-                {
-                    parameters.Add(stringParameters);
+                    arguments.Add(new CommandArgument(property.PropertyType, property.GetValue(this), GetArgumentAttributes(property)));
                 }
             }
+            return arguments;
+        }
 
-            await Execute(parameters, context);
-        }*/
+        private List<PropertyInfo> GetArgumentsProperties()
+        {
+            List<PropertyInfo> properties = this.GetType().GetProperties().Where(property => property.IsDefined(typeof(CommandArgumentAttribute), false)).ToList();
+            return properties;
+        }
 
-        public abstract Task Execute(CommandContext context = null);
+        private CommandArgumentAttribute GetArgumentAttributes(PropertyInfo argumentProperties)
+        {
+            CommandArgumentAttribute attributes = (CommandArgumentAttribute)Attribute.GetCustomAttribute(argumentProperties, typeof(CommandArgumentAttribute));
+            return attributes;
+        }
+
+        /* private CommandCondition CreateCommandConditionInstance(Type commandConditionType, CommandContext context, object[] arguments)
+         {
+             CommandCondition condition = (CommandCondition)Activator.CreateInstance(commandConditionType);
+
+             condition.Context = context;
+             for (int i = 0; i < arguments.Length; i++)
+             {
+                 object argument = arguments[i];
+                 string name = argument.GetType().GetProperties().Where(prop => prop.GetCustomAttribute<CommandConditionAttribute>().Name != null).FirstOrDefault()?.Name;
+                 PropertyInfo property = commandConditionType.GetProperty(name);
+                 property.SetValue(property, argument);
+             }
+
+             return condition;
+         }*/
     }
 }

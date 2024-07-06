@@ -23,10 +23,12 @@ using СrossAppBot.Events;
 
 namespace СrossAppBot
 {
-    public class VkBotClient : AbstractBotClient
+    public class VkBotClient : AbstractBotClient, IEmojiable, IAddReaction
     {
         private VkApi _api = new VkApi();
-        private ulong GroupId;
+        public ulong GroupId;
+
+        private static List<string> _emojis = new List<string> { "❤️", "🔥", "😂", "👍", "💩", "❓", "😭", "👎", "👌", "😡", "😃", "🤔", "🙏", "😘", "😍", "🎉" };
 
         public VkBotClient(string Token, ulong GroupId) : base("Vk", Token)
         {
@@ -40,15 +42,16 @@ namespace СrossAppBot
         {
             try
             {
-                List<IReadOnlyCollection<MediaAttachment>> attachments = new List<IReadOnlyCollection<MediaAttachment>>();
+                List<MediaAttachment> attachments = new List<MediaAttachment>();
                 if (files != null)
                 {
                     foreach (string file in files)
                     {
                         string extension = Path.GetExtension(file);
-                        UploadServerInfo server = await GetUploadServer(extension);
-                        string response = await UploadFile(server.UploadUrl, file, extension);
-                        IReadOnlyCollection<Photo> attachment = _api.Photo.SaveMessagesPhoto(response);
+                        /*UploadServerInfo server = await GetUploadServer(fileExtension);
+                        string response = await UploadFile(server.UploadUrl, filePath, fileExtension);
+                        IReadOnlyCollection<Photo> photo = _api.Photo.SaveMessagesPhoto(response);*/
+                        var attachment = await GetAttachment(file);
                         attachments.Add(attachment);
                     }
                 }
@@ -66,10 +69,10 @@ namespace СrossAppBot
 
                 MessagesSendParams sendMessageParams = new MessagesSendParams
                 {
-                    RandomId = new Random().Next(), // Generate a random ID for the vkMessage
+                    RandomId = new Random().Next(), // Generate uploadServer random ID for the vkMessage
                     PeerId = peerId, // Specify the recipient's ID
                     Message = text, // Set the vkMessage content      
-                    Attachments = attachments.SelectMany(attachments => attachments),
+                    Attachments = attachments,
                     Forward = messageForward
                 };
 
@@ -83,14 +86,13 @@ namespace СrossAppBot
 
         public override async Task StartAsync()
         {
-            Console.WriteLine("T");
             _api.Authorize(new ApiAuthParams
             {
                 AccessToken = Token,
 
             });
 
-            var botUser = await _api.Users.GetAsync(new long[] { (long)GroupId });
+
 
             LongPollServerResponse longPollServer = null;
             try
@@ -103,6 +105,7 @@ namespace СrossAppBot
             }
             var ts = longPollServer.Ts;
 
+            await EventManager.CallEvent(new BotConnectedEvent(this));
 
             while (true)
             {
@@ -129,6 +132,7 @@ namespace СrossAppBot
 
 
                 List<GroupUpdate> updates = poll.Updates;
+                //Console.WriteLine(updates.Count);
 
                 List<Message> messages = updates
                      .Where(u => u.Instance is MessageNew)
@@ -137,16 +141,14 @@ namespace СrossAppBot
 
                 if (messages.Count > 0)
                 {
-                    foreach (Message vkMessage in messages)
+                    foreach (Message originalMessage in messages)
                     {
-                        ChatMessage message = ConvertVkMessageToChatMessage(vkMessage);
+                        ChatMessage message = ConvertVkMessageToChatMessage(originalMessage);
                         await EventManager.CallEvent(new MessageReceivedEvent(message));
-
                     }
                 }
             }
         }
-
 
 
         public override string Mention(ChatUser user)
@@ -166,7 +168,7 @@ namespace СrossAppBot
             return Regex.IsMatch(mention, pattern);
         }
 
-        public override async Task<ChatUser> GetUserAsync(string userId, ChatGuild guild)
+        public override async Task<ChatUser> GetUserAsync(string userId, ChatGroup guild)
         {
             User vkUser = GetVkUserById(long.Parse(userId));
             Conversation vkGuild = GetConversationById(guild.Id);
@@ -191,36 +193,55 @@ namespace СrossAppBot
             return ConvertVkChannelToChatChannel(GetConversationById(channelId));
         }
 
-        public override async Task<ChatGuild> GetGuildAsync(string guildId)
+        public override async Task<ChatGroup> GetGuildAsync(string guildId)
         {
             return ConvertVkGuildToChatGuild(GetConversationById(guildId));
         }
 
-        private ChatGuild ConvertVkGuildToChatGuild(Conversation conversation)
+        private ChatGroup ConvertVkGuildToChatGuild(Conversation conversation)
         {
+            string conversationName = null;
             ConversationChatSettings settings = conversation.ChatSettings;
-            return new ChatGuild(conversation.Peer.ToString(), this, settings.Title, conversation);
+            if (settings != null)
+            {
+                conversationName = settings.Title;
+            }
+            return new ChatGroup(conversation.Peer.ToString(), this, conversationName, conversation);
         }
 
         private ChatChannel ConvertVkChannelToChatChannel(Conversation conversation)
         {
+            ChatGroup guild = null;
+            bool isPrivate = conversation.Peer.Id < 2000000000;
+            if (!isPrivate)
+            {
+                guild = ConvertVkGuildToChatGuild(conversation);
+            }
+            string conversationName = null;
             ConversationChatSettings settings = conversation.ChatSettings;
-            return new ChatChannel(conversation.Peer.Id.ToString(), settings.Title, ConvertVkGuildToChatGuild(conversation), conversation);
+            if (settings != null) //The settings are null if the bot is not have administrator rights
+            {
+                conversationName = settings.Title;
+            }
+
+            return new ChatChannel(conversation.Peer.Id.ToString(), conversationName, isPrivate, conversation, guild);
         }
 
         private ChatUser ConvertVkUserToChatUser(User vkUser, Conversation conversation)
         {
             long vkUserId = vkUser.Id;
             bool isAdmin = false;
+            bool isOwner = false;
             ConversationChatSettings chatSettings = conversation.ChatSettings;
-            if (chatSettings.AdminIds != null & chatSettings.AdminIds.Count > 0)
+            if (chatSettings != null)
             {
-                isAdmin = chatSettings.AdminIds.Contains(vkUser.Id);
+                if (chatSettings.AdminIds != null & chatSettings.AdminIds.Count > 0)
+                {
+                    isAdmin = chatSettings.AdminIds.Contains(vkUser.Id);
+                }
             }
 
-            return new ChatUser(vkUserId.ToString(), vkUser.FirstName, this, conversation,
-                isOwner: conversation.ChatSettings.OwnerId == vkUserId,
-                isAdmin: isAdmin);
+            return new ChatUser(vkUserId.ToString(), vkUser.FirstName, this, conversation);
         }
 
         private ChatMessage ConvertVkMessageToChatMessage(Message message)
@@ -243,7 +264,7 @@ namespace СrossAppBot
                 }
             }
 
-            ChatGuild guild = ConvertVkGuildToChatGuild(conversation);
+            ChatGroup guild = ConvertVkGuildToChatGuild(conversation);
             return new ChatMessage(id.ToString(), ConvertVkUserToChatUser(author, conversation), guild,
                 this, ConvertVkChannelToChatChannel(conversation), message,
                 text: message.Text, files: files);
@@ -272,18 +293,68 @@ namespace СrossAppBot
             return user;
         }
 
-        private async Task<UploadServerInfo> GetUploadServer(string fileExtension)
+        private async Task<MediaAttachment> GetAttachment(string filePath)
         {
+            string fileExtension = Path.GetExtension(filePath);
             switch (fileExtension)
             {
                 case ".png":
                 case ".jpg":
                 case ".gif":
-                    return await _api.Photo.GetMessagesUploadServerAsync(0);
+                case ".tif":
+                    var uploadServer = await _api.Photo.GetMessagesUploadServerAsync(0);
+                    // Получение массива байтов из файла
+                    var data = File.ReadAllBytes(filePath);
+
+                    // Создание запроса на загрузку файла на сервер
+                    using (var client = new HttpClient())
+                    {
+                        var requestContent = new MultipartFormDataContent();
+                        var content = new ByteArrayContent(data);
+                        content.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
+                        requestContent.Add(content, "filePath", $"filePath.{fileExtension}");
+
+                        var response = client.PostAsync(uploadServer.UploadUrl, requestContent).Result;
+
+                        var result = Encoding.Default.GetString(await response.Content.ReadAsByteArrayAsync());
+                        var photo = await _api.Photo.SaveMessagesPhotoAsync(result);
+                        return photo[0];
+                    }
+                case ".avi":
+                case ".mp4":
+                case ".3gp":
+                case ".mpeg":
+                case ".mov":
+                case ".flv":
+                case ".f4v":
+                case ".wmv":
+                case ".mkv":
+                case ".webm":
+                case ".vob":
+                case ".rm":
+                case ".rmvb":
+                case ".m4v":
+                case ".mpg":
+                case ".ogv":
+                case ".ts":
+                case ".m2ts":
+                case ".mts":
+                /*var video = await _api.Video.SaveAsync(new VideoSaveParams
+                {
+                    Name = Path.GetFileNameWithoutExtension(filePath),
+                    Description = null,
+                    Wallpost = false, 
+                    GroupId = null,
+                    IsPrivate = true,
+                });
+                return video;*/
+
                 default:
-                    throw new ArgumentException("File is not supported");
+                    throw new ArgumentException("File format is not supported: " + fileExtension);
             }
         }
+
+
         private async Task<string> UploadFile(string serverUrl, string filePath, string fileExtension)
         {
             // Получение массива байтов из файла
@@ -295,11 +366,46 @@ namespace СrossAppBot
                 var requestContent = new MultipartFormDataContent();
                 var content = new ByteArrayContent(data);
                 content.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-                requestContent.Add(content, "file", $"file.{fileExtension}");
+                requestContent.Add(content, "filePath", $"filePath.{fileExtension}");
 
                 var response = client.PostAsync(serverUrl, requestContent).Result;
                 return Encoding.Default.GetString(await response.Content.ReadAsByteArrayAsync());
             }
+        }
+
+        public bool IsReactableEmoji(string content)
+        {
+            return _emojis.Contains(content);
+        }
+
+        public Task AddReaction(ChatMessage message, string reaction)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<List<UserRight>> GetUserRights(ChatUser user, ChatGroup guild)
+        {
+            Conversation vkChannel = GetConversationById(guild.Id);
+            User vkUser = GetVkUserById(long.Parse(user.Id));
+
+            List<UserRight> rights = new List<UserRight>();
+
+            ConversationChatSettings chatSettings = vkChannel.ChatSettings;
+            if (chatSettings == null) return null;
+
+
+            if (chatSettings.AdminIds != null & chatSettings.AdminIds.Count > 0)
+            {
+                if (chatSettings.AdminIds.Contains(vkUser.Id))
+                {
+                    rights.Add(UserRight.Administrator);
+                }
+            }
+            if (chatSettings.OwnerId == vkUser.Id)
+            {
+                rights.Add(UserRight.Administrator);
+            }
+            return Task.FromResult(rights);
         }
     }
 }

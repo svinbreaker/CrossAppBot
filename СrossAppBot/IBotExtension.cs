@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace СrossAppBot
 {
-    public interface IEmojiable
+    public interface IBotExtension
     {
-        public bool IsEmoji(string content);
     }
 }

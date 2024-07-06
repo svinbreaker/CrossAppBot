@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using СrossAppBot.Entities;
+using СrossAppBot.Events.Logging;
 
 namespace СrossAppBot.Events
 {
@@ -26,6 +29,7 @@ namespace СrossAppBot.Events
             {
                 eventHandlers[typeof(T)].Add(handler);
             }
+
         }
 
         // Unsubscribe from an events
@@ -47,11 +51,10 @@ namespace СrossAppBot.Events
             {
                 foreach (var handler in eventHandlers[typeof(T)])
                 {
-                    await ((EventHandler<T>)handler)(clientEvent);
+                    await ((EventHandler<T>)handler)(clientEvent);                 
                 }
             }
         }
-
 
         /*// Trigger events
         public async Task CallEvent(params AbstractClientEvent[] clientEvents)

@@ -15,8 +15,12 @@ namespace СrossAppBot.Commands
             {
                 var dictionary = new Dictionary<Type, IArgumentParser>
                 {
+                    { typeof(int), new IntArgumentParser() },
                     { typeof(int?), new IntArgumentParser() },
+                    { typeof(double), new DoubleArgumentParser() },
                     { typeof(double?), new DoubleArgumentParser() },
+                    { typeof(float), new DoubleArgumentParser() },
+                    { typeof(float?), new DoubleArgumentParser() },
                     { typeof(string), new StringArgumentParser() },
                     { typeof(ChatUser), new ChatUserArgumentParser() }
                 };
@@ -25,7 +29,6 @@ namespace СrossAppBot.Commands
         }
 
 
-        // Класс для парсера типа int
         public class IntArgumentParser : IArgumentParser
         {
             public IntArgumentParser() : base(typeof(int?)) { }
@@ -40,7 +43,6 @@ namespace СrossAppBot.Commands
             }
         }
 
-        // Класс для парсера типа double
         public class DoubleArgumentParser : IArgumentParser
         {
             public DoubleArgumentParser() : base(typeof(double?)) { }
@@ -49,6 +51,19 @@ namespace СrossAppBot.Commands
                 if (double.TryParse(value, out double doubleValue))
                 {
                     return doubleValue;
+                }
+                return null;
+            }
+        }
+
+        public class FloatArgumentParser : IArgumentParser
+        {
+            public FloatArgumentParser() : base(typeof(float?)) { }
+            public override object Parse(string value, CommandContext context = null)
+            {
+                if (float.TryParse(value, out float floatValue))
+                {
+                    return floatValue;
                 }
                 return null;
             }

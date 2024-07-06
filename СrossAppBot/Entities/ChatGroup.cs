@@ -7,7 +7,7 @@ using VkNet.Model;
 
 namespace СrossAppBot.Entities
 {
-    public class ChatGuild
+    public class ChatGroup
     {
         public string Id { get; set; }
 
@@ -16,7 +16,7 @@ namespace СrossAppBot.Entities
 
         public object OriginalObject { get; set; }
 
-        public ChatGuild(string id, AbstractBotClient client, string name, object originalObject)
+        public ChatGroup(string id, AbstractBotClient client, string name, object originalObject)
         {
             Id = id;
             Client = client;
